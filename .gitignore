@@ -1,2 +1,2 @@
 *.backup
-./*.tfstate
+*.tfstate
