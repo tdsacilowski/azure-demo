@@ -9,19 +9,29 @@ assumes the following environment vars are set:
 */
 provider "azurerm" {}
 
+variable "atlas_token" {
+  type = "string"
+}
+
+variable "atlas_environment" {
+  type    = "string"
+  default = "demo_dc"
+}
+
 variable "location" {
-  type    = "list"
+  type = "list"
+
   default = ["West US", "West US 2"]
 }
 
 variable "vms_per_region" {
   type    = "string"
-  default = 2
+  default = 3
 }
 
 # create a resource group 
 resource "azurerm_resource_group" "Demo" {
-  name     = "terraformtest"
+  name     = "2AzureDemo"
   location = "West US"
 }
 
@@ -51,6 +61,9 @@ resource "azurerm_public_ip" "DemoPublicIP" {
   resource_group_name          = "${azurerm_resource_group.Demo.name}"
   public_ip_address_allocation = "dynamic"
 
+  #https://github.com/hashicorp/terraform/issues/6634#issuecomment-222843191
+  domain_name_label = "${format("azure-demo%02d-%.8s",count.index,  uuid())}"
+
   tags {
     environment = "Demo"
   }
@@ -74,7 +87,7 @@ resource "azurerm_network_interface" "DemoNIC" {
 # create storage account
 resource "azurerm_storage_account" "DemoSA" {
   count               = "${length(var.location)}"
-  name                = "demosa2017${count.index}"
+  name                = "2azuredemosa${count.index}"
   resource_group_name = "${azurerm_resource_group.Demo.name}"
   location            = "${element(var.location, count.index)}"
   account_type        = "Standard_LRS"
@@ -129,5 +142,28 @@ resource "azurerm_virtual_machine" "DemoVM" {
 
   tags {
     environment = "Demo"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "#!/bin/bash",
+      "set -x",
+      "sudo apt-get update && sudo apt-get install -y curl unzip",
+      "sudo mkdir -p /opt/consul/data",
+      "cd /opt/consul",
+      "sudo curl -O https://releases.hashicorp.com/consul/0.7.5/consul_0.7.5_linux_amd64.zip",
+      "sudo unzip consul_0.7.5_linux_amd64.zip",
+      "sudo chmod 755 consul",
+      "cd /opt/consul",
+      "sudo nohup ./consul agent -server -bind 0.0.0.0 -client 0.0.0.0 -datacenter dc-\"${count.index%length(var.location)}\" -data-dir=\"/opt/consul/data\" -bootstrap-expect 3 -atlas=\"${var.atlas_environment}\" -atlas-join -atlas-token=\"${var.atlas_token}\" &",
+      "sleep 1",
+    ]
+
+    connection {
+      host     = "${element(azurerm_public_ip.DemoPublicIP.*.fqdn, count.index)}"
+      type     = "ssh"
+      user     = "testadmin"
+      password = "Password1234!"
+    }
   }
 }
