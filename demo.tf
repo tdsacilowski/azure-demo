@@ -22,8 +22,7 @@ variable "tenant_id" {
 }
 
 variable "location" {
-  type = "list"
-
+  type    = "list"
   default = ["West US", "West US 2"]
 }
 
@@ -130,6 +129,20 @@ resource "azurerm_storage_container" "DemoSC" {
   depends_on            = ["azurerm_storage_account.DemoSA"]
 }
 
+# create boostrap script
+data "template_file" "bootstrap" {
+  count    = "${length(var.location) * var.vms_per_region}"
+  template = "${file("${path.module}/bootstrap.sh.tpl")}"
+
+  vars {
+    client_id     = "${var.client_id}"
+    client_secret = "${var.client_secret}"
+    tenant_id     = "${var.tenant_id}"
+    dc            = "${count.index%length(var.location)}"
+    node_name     = "${element(azurerm_public_ip.DemoPublicIP.*.fqdn, count.index)}"
+  }
+}
+
 # create virtual machine(s)
 resource "azurerm_virtual_machine" "DemoVM" {
   count               = "${length(var.location) * var.vms_per_region}"
@@ -176,21 +189,7 @@ resource "azurerm_virtual_machine" "DemoVM" {
     environment = "consul-dc-${count.index%length(var.location)}"
   }
   provisioner "remote-exec" {
-    inline = [
-      "#!/bin/bash",
-      "set -x",
-      "sudo apt-get update && sudo apt-get install -y libssl-dev libffi-dev python-dev build-essential curl unzip jq",
-      "echo \"deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/azure-cli/ wheezy main\" | sudo tee /etc/apt/sources.list.d/azure-cli.list",
-      "sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893",
-      "sudo apt-get install apt-transport-https",
-      "sudo apt-get update && sudo apt-get install azure-cli",
-      "sudo mkdir -p /opt/consul/data",
-      "cd /opt/consul",
-      "sudo curl -O https://releases.hashicorp.com/consul/0.7.5/consul_0.7.5_linux_amd64.zip",
-      "sudo unzip consul_0.7.5_linux_amd64.zip",
-      "sudo chmod 755 consul",
-      "az login --service-principal -u ${var.client_id} -p ${var.client_secret} --tenant ${var.tenant_id}",
-    ]
+    inline = ["${element(data.template_file.bootstrap.*.rendered, count.index)}"]
 
     connection {
       #host     = "${element(azurerm_public_ip.DemoPublicIP.*.ip_address, count.index)}"
