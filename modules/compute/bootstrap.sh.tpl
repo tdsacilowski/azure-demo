@@ -15,8 +15,8 @@ CONSUL_TEMPLATE_VERSION=0.18.2
 #######################################
 
 echo "Installing dependencies..."
-sudo apt-get -qq -y update
-sudo apt-get install -qq -y libssl-dev libffi-dev python-dev build-essential curl unzip jq
+sudo apt -qq -y update
+sudo apt install -qq -y libssl-dev libffi-dev python-dev build-essential curl unzip jq
 
 #######################################
 # AZURE CLI INSTALL
@@ -24,8 +24,8 @@ sudo apt-get install -qq -y libssl-dev libffi-dev python-dev build-essential cur
 
 echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/azure-cli/ wheezy main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
 sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
-sudo apt-get install apt-transport-https
-sudo apt-get update -qq && sudo apt-get install -qq -y azure-cli
+sudo apt install apt-transport-https
+sudo apt update -qq && sudo apt install -qq -y azure-cli
 
 #######################################
 # CONSUL INSTALL
@@ -126,8 +126,8 @@ echo "Consul-template installation complete."
 
 echo "Installing Dnsmasq..."
 
-sudo apt-get -qq -y update
-sudo apt-get -qq -y install dnsmasq-base dnsmasq
+sudo apt -qq -y update
+sudo apt -qq -y install dnsmasq-base dnsmasq
 
 echo "Configuring Dnsmasq..."
 
