@@ -9,6 +9,7 @@ timeout 180 /bin/bash -c \
 
 CONSUL_VERSION=0.7.5
 CONSUL_TEMPLATE_VERSION=0.18.2
+NOMAD_VERSION=0.5.6
 
 #######################################
 # INSTALL DEPENDENCIES
@@ -31,7 +32,6 @@ sudo apt update -qq && sudo apt install -qq -y azure-cli
 # CONSUL INSTALL
 #######################################
 
-# install consul
 echo "Fetching consul..."
 cd /tmp/
 
@@ -60,6 +60,7 @@ INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,
 # Get join IP address
 az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
 JOIN_IP=$(az network nic show --ids `az vm show --ids \`az resource list --tag environment=${dc} | jq '.[]?.id' | tr -d '"'\` | jq '.[]?.networkProfile.networkInterfaces | .[]?.id' | tr -d '"'` | jq '.[0]?.ipConfigurations[].privateIpAddress' | tr -d '"')
+az logout
 
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {
@@ -85,7 +86,6 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 EOF
 
 sudo tee /etc/systemd/system/consul.service > /dev/null <<EOF
-
 [Unit]
 Description=consul
 Requires=network-online.target
@@ -141,8 +141,81 @@ sudo service dnsmasq restart
 echo "dnsmasq installation complete."
 
 #######################################
+# NOMAD INSTALL
+#######################################
+
+echo "Fetching nomad..."
+cd /tmp/
+
+curl -o nomad.zip https://releases.hashicorp.com/nomad/$${NOMAD_VERSION}/nomad_$${NOMAD_VERSION}_linux_amd64.zip
+
+echo "Installing nomad..."
+unzip nomad.zip
+rm nomad.zip
+sudo chmod +x nomad
+sudo mv nomad /usr/bin/nomad
+sudo mkdir -pm 0600 /etc/nomad.d
+
+# setup nomad directories
+sudo mkdir -pm 0600 /opt/nomad
+sudo mkdir -p /opt/nomad/data
+
+echo "Nomad installation complete."
+
+#######################################
+# NOMAD CONFIGURATION
+#######################################
+
+sudo tee /etc/nomad.d/nomad.hcl > /dev/null <<EOF
+name       = "${node_name}"
+data_dir   = "/opt/nomad/data"
+datacenter = "${dc}"
+bind_addr = "0.0.0.0"
+
+server {
+  enabled          = true
+  bootstrap_expect = ${vms_per_cluster}
+}
+
+client {
+  enabled = true
+}
+
+addresses {
+  rpc  = "$$INSTANCE_PRIVATE_IP"
+  serf = "$$INSTANCE_PRIVATE_IP"
+}
+advertise {
+  http = "$$INSTANCE_PRIVATE_IP:4646"
+}
+consul {
+}
+EOF
+
+sudo tee /etc/systemd/system/nomad.service > /dev/null <<EOF
+[Unit]
+Description=nomad
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/nomad
+Environment=GOMAXPROCS=2
+Restart=on-failure
+ExecStart=/usr/bin/nomad agent -config=/etc/nomad.d
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#######################################
 # START SERVICES
 #######################################
 
 sudo systemctl enable consul.service
 sudo systemctl start consul
+
+sudo systemctl enable nomad.service
+sudo systemctl start nomad
