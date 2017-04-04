@@ -12,6 +12,6 @@ resource "azurerm_network_interface" "demo_pub_nic" {
   }
 
   tags {
-    environment = "${var.env_tag}-${count.index%length(var.location)}"
+    environment = "${var.env_tag}-${lower(replace(element(var.location, count.index), " ", ""))}"
   }
 }

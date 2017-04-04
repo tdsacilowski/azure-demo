@@ -24,66 +24,97 @@ variable "tenant_id" {
   default = "[ENTER TENANT_ID]"
 }
 
-variable "location" {
+#######################################
+# Consul Cluster(s)
+#######################################
+
+variable "consul_cluster_name" {
+  type    = "string"
+  default = "consul-cluster"
+}
+
+variable "consul_cluster_location" {
   type    = "list"
   default = ["West US", "West US 2"]
 }
 
-variable "vms_per_cluster" {
+variable "consul_cluster_vms" {
   type    = "string"
   default = 3
 }
 
-# Create a resource group
-module "resource_group" {
-  source = "./modules/resource_group"
-
-  name     = "AzureDemo"
-  location = "${var.location}"
+# VN CIDR block
+variable "consul_cluster_vn_address_space" {
+  type    = "list"
+  default = ["10.0.0.0/16"]
 }
 
-# Create network resources
-module "networking" {
-  source = "./modules/networking"
+# Subnet CIDR block
+variable "consul_cluster_subnet_address_prefix" {
+  type    = "list"
+  default = ["10.0.2.0/24"]
+}
 
-  vms_per_cluster     = "${var.vms_per_cluster}"
-  name                = "demo"
-  location            = "${var.location}"
-  resource_group_name = "${module.resource_group.name}"
-  address_space       = ["10.0.0.0/16"]
-  address_prefix      = ["10.0.2.0/24"]
-  env_tag             = "consul-dc"
+# Storage Account name
+variable "consul_cluster_sa_name" {
+  type    = "string"
+  default = "consulcluster"
+}
+
+# Create a resource group
+module "consul_resource_group" {
+  source = "./modules/resource_group"
+
+  name     = "Consul-Cluster"
+  location = "${var.consul_cluster_location}"
 }
 
 # Create storage for VHDs
-module "storage" {
+module "consul_storage" {
   source = "./modules/storage"
 
-  resource_group_name  = "${module.resource_group.name}"
-  storage_account_name = "azuredemosa"
-  location             = "${var.location}"
+  resource_group_name  = "${module.consul_resource_group.name}"
+  storage_account_name = "${var.consul_cluster_sa_name}"
+  location             = "${var.consul_cluster_location}"
   account_type         = "Standard_LRS"
 
   container_access_type = "private"
   container_name        = "vhd"
 }
 
+# Create network resources
+module "consul_networking" {
+  source = "./modules/networking"
+
+  vms_per_cluster     = "${var.consul_cluster_vms}"
+  name                = "${var.consul_cluster_name}-vn"
+  location            = "${var.consul_cluster_location}"
+  resource_group_name = "${module.consul_resource_group.name}"
+  address_space       = "${var.consul_cluster_vn_address_space}"
+  address_prefix      = "${var.consul_cluster_subnet_address_prefix}"
+  env_tag             = "${var.consul_cluster_name}"
+}
+
 # Launch Consul/Nomad cluster(s)
-module "compute" {
+module "consul_compute" {
   source = "./modules/compute"
 
-  name                = "consul-vm"
-  resource_group_name = "${module.resource_group.name}"
-  vms_per_cluster     = "${var.vms_per_cluster}"
+  name                = "${var.consul_cluster_name}-vm"
+  resource_group_name = "${module.consul_resource_group.name}"
+  vms_per_cluster     = "${var.consul_cluster_vms}"
   client_id           = "${var.client_id}"
   client_secret       = "${var.client_secret}"
   tenant_id           = "${var.tenant_id}"
-  location            = "${var.location}"
-  public_nic          = "${module.networking.public_nic_id}"
-  public_ip           = "${module.networking.public_ip}"
-  public_fqdn         = "${module.networking.public_fqdn}"
-  node_name           = "${module.networking.public_fqdn}"
-  storage_account     = "${module.storage.primary_blob_endpoint}"
-  container_name      = "${module.storage.container_name}"
-  env_tag             = "consul-dc"
+  location            = "${var.consul_cluster_location}"
+  public_nic          = "${module.consul_networking.public_nic_id}"
+  public_ip           = "${module.consul_networking.public_ip}"
+  public_fqdn         = "${module.consul_networking.public_fqdn}"
+  node_name           = "${module.consul_networking.public_fqdn}"
+  storage_account     = "${module.consul_storage.primary_blob_endpoint}"
+  container_name      = "${module.consul_storage.container_name}"
+
+  # This will be appended with Azure region/location (i.e. consul-cluster-westus).
+  # It will be used for the Consul datacenter name, and will also be used by the
+  # Azure CLI to query for other VMs in the same datacentef for Consul auto-join
+  env_tag = "${var.consul_cluster_name}"
 }

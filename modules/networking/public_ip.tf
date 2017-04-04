@@ -13,6 +13,6 @@ resource "azurerm_public_ip" "demo_pub_ip" {
   }
 
   tags {
-    environment = "${var.env_tag}-${count.index % length(var.location)}"
+    environment = "${var.env_tag}-${lower(replace(element(var.location, count.index), " ", ""))}"
   }
 }

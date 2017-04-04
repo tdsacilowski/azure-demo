@@ -59,7 +59,7 @@ INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,
 
 # Get join IP address
 az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
-JOIN_IP=$(az network nic show --ids `az vm show --ids \`az resource list --tag environment=consul-dc-${dc} | jq '.[]?.id' | tr -d '"'\` | jq '.[]?.networkProfile.networkInterfaces | .[]?.id' | tr -d '"'` | jq '.[0]?.ipConfigurations[].privateIpAddress' | tr -d '"')
+JOIN_IP=$(az network nic show --ids `az vm show --ids \`az resource list --tag environment=${dc} | jq '.[]?.id' | tr -d '"'\` | jq '.[]?.networkProfile.networkInterfaces | .[]?.id' | tr -d '"'` | jq '.[0]?.ipConfigurations[].privateIpAddress' | tr -d '"')
 
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {

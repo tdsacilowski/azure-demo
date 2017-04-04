@@ -6,7 +6,7 @@ data "template_file" "bootstrap" {
     client_id       = "${var.client_id}"
     client_secret   = "${var.client_secret}"
     tenant_id       = "${var.tenant_id}"
-    dc              = "${count.index%length(var.location)}"
+    dc              = "${var.env_tag}-${lower(replace(element(var.location, count.index), " ", ""))}"
     vms_per_cluster = "${var.vms_per_cluster}"
     node_name       = "${element(var.node_name, count.index)}"
   }
@@ -47,7 +47,7 @@ resource "azurerm_virtual_machine" "DemoVM" {
   }
 
   tags {
-    environment = "${var.env_tag}-${count.index%length(var.location)}"
+    environment = "${var.env_tag}-${lower(replace(element(var.location, count.index), " ", ""))}"
   }
 
   provisioner "remote-exec" {
