@@ -1,2 +1,6 @@
-*.tfstate
-*.tfstate.*
+## General operating system artefacts
+.DS_Store
+ 
+## Terraform artefacts
+.terraform/
+*.tfstate*
