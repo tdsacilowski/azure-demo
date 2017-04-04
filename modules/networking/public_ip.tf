@@ -1,5 +1,5 @@
 resource "azurerm_public_ip" "demo_pub_ip" {
-  count                        = "${length(var.location) * var.vms_per_region}"
+  count                        = "${length(var.location) * var.vms_per_cluster}"
   name                         = "${var.name}-pubip-${count.index}"
   location                     = "${element(var.location, count.index)}"
   resource_group_name          = "${var.resource_group_name}"

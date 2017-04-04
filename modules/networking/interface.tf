@@ -8,7 +8,7 @@ variable "location" {
   description = "The location(s) for the Virtual Network"
 }
 
-variable "vms_per_region" {
+variable "vms_per_cluster" {
   type        = "string"
   description = "The number of VMs to create in each region"
 }

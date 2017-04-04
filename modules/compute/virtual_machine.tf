@@ -1,18 +1,19 @@
 data "template_file" "bootstrap" {
-  count    = "${length(var.location) * var.vms_per_region}"
+  count    = "${length(var.location) * var.vms_per_cluster}"
   template = "${file("${path.module}/bootstrap.sh.tpl")}"
 
   vars {
-    client_id     = "${var.client_id}"
-    client_secret = "${var.client_secret}"
-    tenant_id     = "${var.tenant_id}"
-    dc            = "${count.index%length(var.location)}"
-    node_name     = "${element(var.node_name, count.index)}"
+    client_id       = "${var.client_id}"
+    client_secret   = "${var.client_secret}"
+    tenant_id       = "${var.tenant_id}"
+    dc              = "${count.index%length(var.location)}"
+    vms_per_cluster = "${var.vms_per_cluster}"
+    node_name       = "${element(var.node_name, count.index)}"
   }
 }
 
 resource "azurerm_virtual_machine" "DemoVM" {
-  count               = "${length(var.location) * var.vms_per_region}"
+  count               = "${length(var.location) * var.vms_per_cluster}"
   name                = "${var.name}-${count.index}"
   location            = "${element(var.location, count.index)}"
   resource_group_name = "${var.resource_group_name}"
@@ -29,8 +30,8 @@ resource "azurerm_virtual_machine" "DemoVM" {
   }
 
   storage_os_disk {
-    name          = "myosdisk"
-    vhd_uri       = "${element(var.storage_account, count.index)}${element(var.container_name, count.index)}/myosdisk-${count.index}.vhd"
+    name          = "${var.name}-osdisk"
+    vhd_uri       = "${element(var.storage_account, count.index)}${element(var.container_name, count.index)}/${var.name}-osdisk-${count.index}.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
   }

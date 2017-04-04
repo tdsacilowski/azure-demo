@@ -25,13 +25,11 @@ variable "tenant_id" {
 }
 
 variable "location" {
-  type = "list"
-
-  #default = ["West US"]
+  type    = "list"
   default = ["West US", "West US 2"]
 }
 
-variable "vms_per_region" {
+variable "vms_per_cluster" {
   type    = "string"
   default = 3
 }
@@ -48,7 +46,7 @@ module "resource_group" {
 module "networking" {
   source = "./modules/networking"
 
-  vms_per_region      = "${var.vms_per_region}"
+  vms_per_cluster     = "${var.vms_per_cluster}"
   name                = "demo"
   location            = "${var.location}"
   resource_group_name = "${module.resource_group.name}"
@@ -74,9 +72,9 @@ module "storage" {
 module "compute" {
   source = "./modules/compute"
 
-  name                = "consul-cluster"
+  name                = "consul-vm"
   resource_group_name = "${module.resource_group.name}"
-  vms_per_region      = "${var.vms_per_region}"
+  vms_per_cluster     = "${var.vms_per_cluster}"
   client_id           = "${var.client_id}"
   client_secret       = "${var.client_secret}"
   tenant_id           = "${var.tenant_id}"
