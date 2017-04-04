@@ -24,6 +24,14 @@ variable "tenant_id" {
   default = "[ENTER TENANT_ID]"
 }
 
+# Create a resource group
+module "consul_resource_group" {
+  source = "./modules/resource_group"
+
+  name     = "Azure-Demo"
+  location = "West US"
+}
+
 #######################################
 # Consul Cluster(s)
 #######################################
@@ -59,14 +67,6 @@ variable "consul_cluster_subnet_address_prefix" {
 variable "consul_cluster_sa_name" {
   type    = "string"
   default = "consulcluster"
-}
-
-# Create a resource group
-module "consul_resource_group" {
-  source = "./modules/resource_group"
-
-  name     = "Consul-Cluster"
-  location = "${var.consul_cluster_location}"
 }
 
 # Create storage for VHDs
