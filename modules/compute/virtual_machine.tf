@@ -3,10 +3,13 @@ data "template_file" "bootstrap" {
   template = "${file("${path.module}/bootstrap.sh.tpl")}"
 
   vars {
+    region          = "${var.nomad_region}"
     dc              = "${var.env_tag}"
     vms_per_cluster = "${var.vms_per_cluster}"
     node_name       = "${element(var.node_name, count.index)}"
     join_ip         = "${var.public_ip[0]}"
+    join_wan        = "${join(",", var.join_wan)}"
+    public_ip       = "${element(var.public_ip, count.index)}"
   }
 }
 
