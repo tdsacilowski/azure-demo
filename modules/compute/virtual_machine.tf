@@ -1,5 +1,5 @@
 data "template_file" "bootstrap" {
-  count    = "${length(var.vms_per_cluster)}"
+  count    = "${var.vms_per_cluster}"
   template = "${file("${path.module}/bootstrap.sh.tpl")}"
 
   vars {
@@ -13,7 +13,7 @@ data "template_file" "bootstrap" {
 }
 
 resource "azurerm_virtual_machine" "demo_vm" {
-  count               = "${length(var.vms_per_cluster)}"
+  count               = "${var.vms_per_cluster}"
   name                = "${var.name}-${count.index}"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group_name}"
