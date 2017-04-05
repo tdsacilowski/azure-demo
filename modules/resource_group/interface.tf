@@ -4,8 +4,8 @@ variable "name" {
 }
 
 variable "location" {
-  type        = "list"
-  description = "The location(s) in which to create the resource group"
+  type        = "string"
+  description = "The location in which to create the resource group"
 }
 
 output "name" {

@@ -4,8 +4,8 @@ variable "storage_account_name" {
 }
 
 variable "location" {
-  type        = "list"
-  description = "The location(s) in which to create the storage account"
+  type        = "string"
+  description = "The location in which to create the storage account"
 }
 
 variable "resource_group_name" {
@@ -29,9 +29,9 @@ variable "container_access_type" {
 }
 
 output "primary_blob_endpoint" {
-  value = ["${azurerm_storage_account.demo_sa.*.primary_blob_endpoint}"]
+  value = "${azurerm_storage_account.demo_sa.primary_blob_endpoint}"
 }
 
 output "container_name" {
-  value = ["${azurerm_storage_container.demo_sc.*.name}"]
+  value = "${azurerm_storage_container.demo_sc.name}"
 }

@@ -4,8 +4,8 @@ variable "name" {
 }
 
 variable "location" {
-  type        = "list"
-  description = "The location(s) for the Virtual Network"
+  type        = "string"
+  description = "The location for the Virtual Network"
 }
 
 variable "vms_per_cluster" {
@@ -54,13 +54,13 @@ variable "public_fqdn" {
 }
 
 variable "storage_account" {
-  type        = "list"
-  description = "The Storage Account(s) to use to place VHD storage containers for each VM"
+  type        = "string"
+  description = "The Storage Account to use to place VHD storage containers for each VM"
 }
 
 variable "container_name" {
-  type        = "list"
-  description = "The name of the Storage Container(s) in which to store VHDs"
+  type        = "string"
+  description = "The name of the Storage Container in which to store VHDs"
 }
 
 variable "env_tag" {

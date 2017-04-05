@@ -4,8 +4,8 @@ variable "name" {
 }
 
 variable "location" {
-  type        = "list"
-  description = "The location(s) for the Virtual Network"
+  type        = "string"
+  description = "The location for the Virtual Network resources"
 }
 
 variable "vms_per_cluster" {
@@ -24,7 +24,7 @@ variable "address_space" {
 }
 
 variable "address_prefix" {
-  type        = "list"
+  type        = "string"
   description = "The CIDR range for the subnet"
 }
 
@@ -34,7 +34,7 @@ variable "env_tag" {
 }
 
 output "public_subnet_id" {
-  value = ["${azurerm_subnet.demo_pub_subnet.*.id}"]
+  value = "${azurerm_subnet.demo_pub_subnet.id}"
 }
 
 output "public_ip" {

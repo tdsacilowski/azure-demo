@@ -1,7 +1,7 @@
 resource "azurerm_public_ip" "demo_pub_ip" {
-  count                        = "${length(var.location) * var.vms_per_cluster}"
+  count                        = "${length(var.vms_per_cluster)}"
   name                         = "${var.name}-pubip-${count.index}"
-  location                     = "${element(var.location, count.index)}"
+  location                     = "${var.location}"
   resource_group_name          = "${var.resource_group_name}"
   public_ip_address_allocation = "static"
 
@@ -13,6 +13,6 @@ resource "azurerm_public_ip" "demo_pub_ip" {
   }
 
   tags {
-    environment = "${var.env_tag}-${lower(replace(element(var.location, count.index), " ", ""))}"
+    environment = "${var.env_tag}"
   }
 }
