@@ -41,8 +41,8 @@ module "inventory_dc1_storage" {
 module "inventory_dc1_networking" {
   source = "./modules/networking"
 
-  vms_per_cluster     = "3"
-  name                = "inventory-dc1-vn"
+  vms_per_cluster     = 3
+  name                = "inventory-dc1"
   location            = "West US"
   resource_group_name = "${module.resource_group.name}"
   address_space       = ["10.0.0.0/16"]
@@ -56,7 +56,7 @@ module "inventory_dc1_compute" {
 
   name                = "inventory-dc1-vm"
   resource_group_name = "${module.resource_group.name}"
-  vms_per_cluster     = "3"
+  vms_per_cluster     = 3
 
   client_id     = "${var.client_id}"
   client_secret = "${var.client_secret}"
@@ -97,8 +97,8 @@ module "inventory_dc2_storage" {
 module "inventory_dc2_networking" {
   source = "./modules/networking"
 
-  vms_per_cluster     = "3"
-  name                = "inventory-dc2-vn"
+  vms_per_cluster     = 3
+  name                = "inventory-dc2"
   location            = "East US"
   resource_group_name = "${module.resource_group.name}"
   address_space       = ["10.0.0.0/16"]
@@ -112,7 +112,7 @@ module "inventory_dc2_compute" {
 
   name                = "inventory-dc2-vm"
   resource_group_name = "${module.resource_group.name}"
-  vms_per_cluster     = "3"
+  vms_per_cluster     = 3
 
   client_id     = "${var.client_id}"
   client_secret = "${var.client_secret}"
@@ -153,8 +153,8 @@ module "checkout_dc1_storage" {
 module "checkout_dc1_networking" {
   source = "./modules/networking"
 
-  vms_per_cluster     = "3"
-  name                = "checkout-dc1-vn"
+  vms_per_cluster     = 3
+  name                = "checkout-dc1"
   location            = "West US 2"
   resource_group_name = "${module.resource_group.name}"
   address_space       = ["10.0.0.0/16"]
@@ -168,7 +168,7 @@ module "checkout_dc1_compute" {
 
   name                = "checkout-dc1-vm"
   resource_group_name = "${module.resource_group.name}"
-  vms_per_cluster     = "3"
+  vms_per_cluster     = 3
 
   client_id     = "${var.client_id}"
   client_secret = "${var.client_secret}"
