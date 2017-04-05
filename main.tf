@@ -125,11 +125,7 @@ module "inventory_dc2_compute" {
   node_name       = "${module.inventory_dc2_networking.public_fqdn}"
   storage_account = "${module.inventory_dc2_storage.primary_blob_endpoint}"
   container_name  = "${module.inventory_dc2_storage.container_name}"
-
-  # This will be appended with Azure region/location (i.e. consul-cluster-westus).
-  # It will be used for the Consul datacenter name, and will also be used by the
-  # Azure CLI to query for other VMs in the same datacentef for Consul auto-join
-  env_tag = "inventory-dc2"
+  env_tag         = "inventory-dc2"
 }
 
 #######################################
@@ -181,9 +177,29 @@ module "checkout_dc1_compute" {
   node_name       = "${module.checkout_dc1_networking.public_fqdn}"
   storage_account = "${module.checkout_dc1_storage.primary_blob_endpoint}"
   container_name  = "${module.checkout_dc1_storage.container_name}"
+  env_tag         = "checkout-dc1"
+}
 
-  # This will be appended with Azure region/location (i.e. consul-cluster-westus).
-  # It will be used for the Consul datacenter name, and will also be used by the
-  # Azure CLI to query for other VMs in the same datacentef for Consul auto-join
-  env_tag = "checkout-dc1"
+output "inventory_dc1_public_ip" {
+  value = "${module.inventory_dc1_networking.public_ip}"
+}
+
+output "inventory_dc1_public_fqdn" {
+  value = "${module.inventory_dc1_networking.public_fqdn}"
+}
+
+output "inventory_dc2_public_ip" {
+  value = "${module.inventory_dc2_networking.public_ip}"
+}
+
+output "inventory_dc2_public_fqdn" {
+  value = "${module.inventory_dc2_networking.public_fqdn}"
+}
+
+output "checkout_dc1_public_ip" {
+  value = "${module.checkout_dc1_networking.public_ip}"
+}
+
+output "checkout_dc1_public_fqdn" {
+  value = "${module.checkout_dc1_networking.public_fqdn}"
 }
