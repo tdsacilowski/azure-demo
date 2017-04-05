@@ -117,7 +117,7 @@ module "inventory_dc2_compute" {
 }
 
 #######################################
-# Checkout Cluster: DC2 (West US 2)
+# Checkout Cluster: DC1 (West US 2)
 #######################################
 
 # Create storage for VHDs
