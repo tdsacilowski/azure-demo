@@ -3,12 +3,10 @@ data "template_file" "bootstrap" {
   template = "${file("${path.module}/bootstrap.sh.tpl")}"
 
   vars {
-    client_id       = "${var.client_id}"
-    client_secret   = "${var.client_secret}"
-    tenant_id       = "${var.tenant_id}"
     dc              = "${var.env_tag}"
     vms_per_cluster = "${var.vms_per_cluster}"
     node_name       = "${element(var.node_name, count.index)}"
+    join_ip         = "${var.public_ip[0]}"
   }
 }
 
@@ -54,8 +52,8 @@ resource "azurerm_virtual_machine" "demo_vm" {
     inline = ["${element(data.template_file.bootstrap.*.rendered, count.index)}"]
 
     connection {
-      #host     = "${element(var.public_ip, count.index)}"
-      host     = "${element(var.public_fqdn, count.index)}"
+      #host     = "${element(var.public_fqdn, count.index)}"
+      host     = "${element(var.public_ip, count.index)}"
       type     = "ssh"
       user     = "testadmin"
       password = "Password1234!"

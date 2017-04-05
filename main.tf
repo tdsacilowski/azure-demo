@@ -8,10 +8,6 @@
 #
 provider "azurerm" {}
 
-variable "client_id" {}
-variable "client_secret" {}
-variable "tenant_id" {}
-
 # Create a resource group
 module "resource_group" {
   source = "./modules/resource_group"
@@ -57,11 +53,7 @@ module "inventory_dc1_compute" {
   name                = "inventory-dc1-vm"
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 3
-
-  client_id     = "${var.client_id}"
-  client_secret = "${var.client_secret}"
-  tenant_id     = "${var.tenant_id}"
-  location      = "West US"
+  location            = "West US"
 
   public_nic      = "${module.inventory_dc1_networking.public_nic_id}"
   public_ip       = "${module.inventory_dc1_networking.public_ip}"
@@ -113,11 +105,7 @@ module "inventory_dc2_compute" {
   name                = "inventory-dc2-vm"
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 3
-
-  client_id     = "${var.client_id}"
-  client_secret = "${var.client_secret}"
-  tenant_id     = "${var.tenant_id}"
-  location      = "East US"
+  location            = "East US"
 
   public_nic      = "${module.inventory_dc2_networking.public_nic_id}"
   public_ip       = "${module.inventory_dc2_networking.public_ip}"
@@ -165,11 +153,7 @@ module "checkout_dc1_compute" {
   name                = "checkout-dc1-vm"
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 3
-
-  client_id     = "${var.client_id}"
-  client_secret = "${var.client_secret}"
-  tenant_id     = "${var.tenant_id}"
-  location      = "West US 2"
+  location            = "West US 2"
 
   public_nic      = "${module.checkout_dc1_networking.public_nic_id}"
   public_ip       = "${module.checkout_dc1_networking.public_ip}"

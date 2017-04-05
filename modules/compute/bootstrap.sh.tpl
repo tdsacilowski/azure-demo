@@ -17,16 +17,7 @@ NOMAD_VERSION=0.5.6
 
 echo "Installing dependencies..."
 sudo apt -qq -y update
-sudo apt install -qq -y libssl-dev libffi-dev python-dev build-essential curl unzip jq
-
-#######################################
-# AZURE CLI INSTALL
-#######################################
-
-echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/azure-cli/ wheezy main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
-sudo apt install apt-transport-https
-sudo apt update -qq && sudo apt install -qq -y azure-cli
+sudo apt install -qq -y curl unzip jq
 
 #######################################
 # CONSUL INSTALL
@@ -57,11 +48,6 @@ echo "Consul installation complete."
 # Get VM private ip address
 INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }')
 
-# Get join IP address
-az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
-JOIN_IP=$(az network nic show --ids `az vm show --ids \`az resource list --tag environment=${dc} | jq '.[]?.id' | tr -d '"'\` | jq '.[]?.networkProfile.networkInterfaces | .[]?.id' | tr -d '"'` | jq '.[0]?.ipConfigurations[].privateIpAddress' | tr -d '"')
-az logout
-
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {
   "server": true,
@@ -72,7 +58,7 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 
   "node_name": "${node_name}",
 
-  "retry_join": ["$${JOIN_IP}"],
+  "retry_join": ["${join_ip}"],
 
   "datacenter": "${dc}",
 
