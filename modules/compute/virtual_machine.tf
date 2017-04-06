@@ -3,7 +3,6 @@ data "template_file" "bootstrap" {
   template = "${file("${path.module}/bootstrap.sh.tpl")}"
 
   vars {
-    region          = "${var.nomad_region}"
     dc              = "${var.env_tag}"
     vms_per_cluster = "${var.vms_per_cluster}"
     node_name       = "${element(var.node_name, count.index)}"

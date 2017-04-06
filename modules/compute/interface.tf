@@ -18,11 +18,6 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create the virtual network"
 }
 
-variable "nomad_region" {
-  type        = "string"
-  description = "The region to assign the Nomad cluster to"
-}
-
 variable "join_wan" {
   type        = "list"
   description = "The list of public IPs to join Consul clusters over WAN"

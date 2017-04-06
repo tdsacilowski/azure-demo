@@ -24,11 +24,10 @@ module "resource_group" {
 module "inventory_dc1_storage" {
   source = "./modules/storage"
 
-  resource_group_name  = "${module.resource_group.name}"
-  storage_account_name = "inventorydc1sa"
-  location             = "West US"
-  account_type         = "Standard_LRS"
-
+  resource_group_name   = "${module.resource_group.name}"
+  storage_account_name  = "inventorydc1sa"
+  location              = "West US"
+  account_type          = "Standard_LRS"
   container_access_type = "private"
   container_name        = "vhd"
 }
@@ -54,15 +53,13 @@ module "inventory_dc1_compute" {
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 1
   location            = "West US"
-
-  public_nic      = "${module.inventory_dc1_networking.public_nic_id}"
-  public_ip       = "${module.inventory_dc1_networking.public_ip}"
-  public_fqdn     = "${module.inventory_dc1_networking.public_fqdn}"
-  join_wan        = "${concat(module.inventory_dc1_networking.public_ip, module.inventory_dc2_networking.public_ip)}"
-  nomad_region    = "global"
-  node_name       = "${module.inventory_dc1_networking.public_fqdn}"
-  storage_account = "${module.inventory_dc1_storage.primary_blob_endpoint}"
-  container_name  = "${module.inventory_dc1_storage.container_name}"
+  public_nic          = "${module.inventory_dc1_networking.public_nic_id}"
+  public_ip           = "${module.inventory_dc1_networking.public_ip}"
+  public_fqdn         = "${module.inventory_dc1_networking.public_fqdn}"
+  join_wan            = "${concat(module.inventory_dc1_networking.public_ip, module.inventory_dc2_networking.public_ip)}"
+  node_name           = "${module.inventory_dc1_networking.public_fqdn}"
+  storage_account     = "${module.inventory_dc1_storage.primary_blob_endpoint}"
+  container_name      = "${module.inventory_dc1_storage.container_name}"
 
   # This will be appended with Azure region/location (i.e. consul-cluster-westus).
   # It will be used for the Consul datacenter name, and will also be used by the
@@ -78,11 +75,10 @@ module "inventory_dc1_compute" {
 module "inventory_dc2_storage" {
   source = "./modules/storage"
 
-  resource_group_name  = "${module.resource_group.name}"
-  storage_account_name = "inventorydc2sa"
-  location             = "East US"
-  account_type         = "Standard_LRS"
-
+  resource_group_name   = "${module.resource_group.name}"
+  storage_account_name  = "inventorydc2sa"
+  location              = "East US"
+  account_type          = "Standard_LRS"
   container_access_type = "private"
   container_name        = "vhd"
 }
@@ -108,16 +104,14 @@ module "inventory_dc2_compute" {
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 1
   location            = "East US"
-
-  public_nic      = "${module.inventory_dc2_networking.public_nic_id}"
-  public_ip       = "${module.inventory_dc2_networking.public_ip}"
-  public_fqdn     = "${module.inventory_dc2_networking.public_fqdn}"
-  join_wan        = "${concat(module.inventory_dc1_networking.public_ip, module.inventory_dc2_networking.public_ip)}"
-  nomad_region    = "global"
-  node_name       = "${module.inventory_dc2_networking.public_fqdn}"
-  storage_account = "${module.inventory_dc2_storage.primary_blob_endpoint}"
-  container_name  = "${module.inventory_dc2_storage.container_name}"
-  env_tag         = "inventory-dc2"
+  public_nic          = "${module.inventory_dc2_networking.public_nic_id}"
+  public_ip           = "${module.inventory_dc2_networking.public_ip}"
+  public_fqdn         = "${module.inventory_dc2_networking.public_fqdn}"
+  join_wan            = "${concat(module.inventory_dc1_networking.public_ip, module.inventory_dc2_networking.public_ip)}"
+  node_name           = "${module.inventory_dc2_networking.public_fqdn}"
+  storage_account     = "${module.inventory_dc2_storage.primary_blob_endpoint}"
+  container_name      = "${module.inventory_dc2_storage.container_name}"
+  env_tag             = "inventory-dc2"
 }
 
 #######################################
@@ -128,11 +122,10 @@ module "inventory_dc2_compute" {
 module "checkout_dc1_storage" {
   source = "./modules/storage"
 
-  resource_group_name  = "${module.resource_group.name}"
-  storage_account_name = "checkoutdc1sa"
-  location             = "West US 2"
-  account_type         = "Standard_LRS"
-
+  resource_group_name   = "${module.resource_group.name}"
+  storage_account_name  = "checkoutdc1sa"
+  location              = "West US 2"
+  account_type          = "Standard_LRS"
   container_access_type = "private"
   container_name        = "vhd"
 }
@@ -158,16 +151,14 @@ module "checkout_dc1_compute" {
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 1
   location            = "West US 2"
-
-  public_nic      = "${module.checkout_dc1_networking.public_nic_id}"
-  public_ip       = "${module.checkout_dc1_networking.public_ip}"
-  public_fqdn     = "${module.checkout_dc1_networking.public_fqdn}"
-  join_wan        = "${concat(module.checkout_dc1_networking.public_ip)}"
-  nomad_region    = "global"
-  node_name       = "${module.checkout_dc1_networking.public_fqdn}"
-  storage_account = "${module.checkout_dc1_storage.primary_blob_endpoint}"
-  container_name  = "${module.checkout_dc1_storage.container_name}"
-  env_tag         = "checkout-dc1"
+  public_nic          = "${module.checkout_dc1_networking.public_nic_id}"
+  public_ip           = "${module.checkout_dc1_networking.public_ip}"
+  public_fqdn         = "${module.checkout_dc1_networking.public_fqdn}"
+  join_wan            = "${concat(module.checkout_dc1_networking.public_ip)}"
+  node_name           = "${module.checkout_dc1_networking.public_fqdn}"
+  storage_account     = "${module.checkout_dc1_storage.primary_blob_endpoint}"
+  container_name      = "${module.checkout_dc1_storage.container_name}"
+  env_tag             = "checkout-dc1"
 }
 
 output "inventory_dc1_public_ip" {
