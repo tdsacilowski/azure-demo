@@ -17,16 +17,7 @@ NOMAD_VERSION=0.5.6
 
 echo "Installing dependencies..."
 sudo apt -qq -y update
-sudo apt install -qq -y libssl-dev libffi-dev python-dev build-essential curl unzip jq
-
-#######################################
-# AZURE CLI INSTALL
-#######################################
-
-echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/azure-cli/ wheezy main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
-sudo apt install apt-transport-https
-sudo apt update -qq && sudo apt install -qq -y azure-cli
+sudo apt install -qq -y curl unzip jq
 
 #######################################
 # CONSUL INSTALL
@@ -56,11 +47,7 @@ echo "Consul installation complete."
 
 # Get VM private ip address
 INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }')
-
-# Get join IP address
-az login --service-principal -u ${client_id} -p ${client_secret} --tenant ${tenant_id}
-JOIN_IP=$(az network nic show --ids `az vm show --ids \`az resource list --tag environment=${dc} | jq '.[]?.id' | tr -d '"'\` | jq '.[]?.networkProfile.networkInterfaces | .[]?.id' | tr -d '"'` | jq '.[0]?.ipConfigurations[].privateIpAddress' | tr -d '"')
-az logout
+INSTANCE_PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {
@@ -69,18 +56,15 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
   "bind_addr": "0.0.0.0",
   "client_addr": "0.0.0.0",
   "advertise_addr": "$${INSTANCE_PRIVATE_IP}",
-
+  "advertise_addr_wan": "$${INSTANCE_PUBLIC_IP}",
   "node_name": "${node_name}",
-
-  "retry_join": ["$${JOIN_IP}"],
-
+  "retry_join": ["${join_ip}"],
   "datacenter": "${dc}",
-
   "data_dir": "/opt/consul/data",
   "ui": true,
   "leave_on_terminate": true,
   "skip_leave_on_interrupt": true,
-
+  "translate_wan_addrs": true,
   "bootstrap_expect": ${vms_per_cluster}
 }
 EOF
@@ -210,6 +194,51 @@ KillSignal=SIGTERM
 WantedBy=multi-user.target
 EOF
 
+
+
+#######################################
+# Setup web app
+#######################################
+if [[ "${dc}" =~ "inventory" ]]; then
+echo "Installing Nginx..."
+sudo mkdir -p /var/log/nginx
+sudo chmod -R 755 /var/log/nginx
+sudo apt-get install -y -q nginx
+
+
+sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
+HELLO FROM ${dc} in ${location}
+EOF
+
+sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX
+{"service": {
+  "name": "nginx",
+  "tags": ["web"],
+  "port": 80,
+    "checks": [
+      {
+        "id": "GET",
+        "script": "curl localhost >/dev/null 2>&1",
+        "interval": "10s"
+      },
+      {
+        "id": "HTTP-TCP",
+        "name": "HTTP TCP on port 80",
+        "tcp": "localhost:80",
+        "interval": "10s",
+        "timeout": "1s"
+      },
+        {
+        "id": "OS service status",
+        "script": "service nginx status",
+        "interval": "30s"
+      }]
+    }
+}
+NGINX
+
+fi
+
 #######################################
 # START SERVICES
 #######################################
@@ -219,3 +248,5 @@ sudo systemctl start consul
 
 sudo systemctl enable nomad.service
 sudo systemctl start nomad
+
+#sudo service nginx start

@@ -18,21 +18,6 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create the virtual network"
 }
 
-variable "client_id" {
-  type        = "string"
-  description = "The client_id to use for authenticating on the Azure CLI"
-}
-
-variable "client_secret" {
-  type        = "string"
-  description = "The client_secret to use for authenticating on the Azure CLI"
-}
-
-variable "tenant_id" {
-  type        = "string"
-  description = "The tenant_id to use for authenticating on the Azure CLI"
-}
-
 variable "node_name" {
   type        = "list"
   description = "The name(s) to use to identify each Consul node within the Consul cluster"

@@ -1,16 +1,4 @@
-# Configure the Microsoft Azure provider
-#
-# Assumes the following environment vars are set:
-#    ARM_SUBSCRIPTION_ID
-#    ARM_CLIENT_ID
-#    ARM_CLIENT_SECRET
-#    ARM_TENANT_ID
-#
 provider "azurerm" {}
-
-variable "client_id" {}
-variable "client_secret" {}
-variable "tenant_id" {}
 
 # Create a resource group
 module "resource_group" {
@@ -57,10 +45,6 @@ module "inventory_dc1_compute" {
   name                = "inventory-dc1-vm"
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 3
-
-  client_id     = "${var.client_id}"
-  client_secret = "${var.client_secret}"
-  tenant_id     = "${var.tenant_id}"
   location      = "West US"
 
   public_nic      = "${module.inventory_dc1_networking.public_nic_id}"
@@ -113,10 +97,6 @@ module "inventory_dc2_compute" {
   name                = "inventory-dc2-vm"
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 3
-
-  client_id     = "${var.client_id}"
-  client_secret = "${var.client_secret}"
-  tenant_id     = "${var.tenant_id}"
   location      = "East US"
 
   public_nic      = "${module.inventory_dc2_networking.public_nic_id}"
@@ -140,7 +120,6 @@ module "checkout_dc1_storage" {
   storage_account_name = "checkoutdc1sa"
   location             = "West US 2"
   account_type         = "Standard_LRS"
-
   container_access_type = "private"
   container_name        = "vhd"
 }
@@ -165,10 +144,6 @@ module "checkout_dc1_compute" {
   name                = "checkout-dc1-vm"
   resource_group_name = "${module.resource_group.name}"
   vms_per_cluster     = 3
-
-  client_id     = "${var.client_id}"
-  client_secret = "${var.client_secret}"
-  tenant_id     = "${var.tenant_id}"
   location      = "West US 2"
 
   public_nic      = "${module.checkout_dc1_networking.public_nic_id}"
@@ -178,28 +153,4 @@ module "checkout_dc1_compute" {
   storage_account = "${module.checkout_dc1_storage.primary_blob_endpoint}"
   container_name  = "${module.checkout_dc1_storage.container_name}"
   env_tag         = "checkout-dc1"
-}
-
-output "inventory_dc1_public_ip" {
-  value = "${module.inventory_dc1_networking.public_ip}"
-}
-
-output "inventory_dc1_public_fqdn" {
-  value = "${module.inventory_dc1_networking.public_fqdn}"
-}
-
-output "inventory_dc2_public_ip" {
-  value = "${module.inventory_dc2_networking.public_ip}"
-}
-
-output "inventory_dc2_public_fqdn" {
-  value = "${module.inventory_dc2_networking.public_fqdn}"
-}
-
-output "checkout_dc1_public_ip" {
-  value = "${module.checkout_dc1_networking.public_ip}"
-}
-
-output "checkout_dc1_public_fqdn" {
-  value = "${module.checkout_dc1_networking.public_fqdn}"
 }
