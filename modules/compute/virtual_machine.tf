@@ -37,7 +37,7 @@ resource "azurerm_virtual_machine" "demo_vm" {
   }
 
   os_profile {
-    computer_name  = "hostname"
+    computer_name  = "${element(var.public_fqdn, count.index)}"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -54,7 +54,6 @@ resource "azurerm_virtual_machine" "demo_vm" {
     inline = ["${element(data.template_file.bootstrap.*.rendered, count.index)}"]
 
     connection {
-      #host     = "${element(var.public_fqdn, count.index)}"
       host     = "${element(var.public_ip, count.index)}"
       type     = "ssh"
       user     = "testadmin"

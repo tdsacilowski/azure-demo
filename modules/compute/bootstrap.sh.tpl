@@ -60,11 +60,12 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
   "server": true,
   "bootstrap_expect": ${vms_per_cluster},
   
+  "bind_addr": "0.0.0.0",
   "client_addr": "0.0.0.0",
   "advertise_addr": "$${INSTANCE_PRIVATE_IP}",
   "advertise_addr_wan": "${public_ip}",
   "translate_wan_addrs": true,
-  
+
   "retry_join": ["${join_ip}"],
   "retry_join_wan": [$${JOIN_WAN_QUOTED}],
   
