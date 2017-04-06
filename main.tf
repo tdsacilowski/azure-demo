@@ -25,7 +25,7 @@ module "inventory_dc1_storage" {
 # Create network resources
 module "inventory_dc1_networking" {
   source              = "./modules/networking"
-  vms_per_cluster     = 1
+  consul_cluster_size = 1
   name                = "inventory-dc1"
   location            = "West US"
   address_space       = ["10.0.0.0/16"]
@@ -38,9 +38,10 @@ module "inventory_dc1_networking" {
 module "inventory_dc1_compute" {
   source              = "./modules/compute"
   name                = "inventory-dc1-vm"
-  vms_per_cluster     = 1
+  consul_cluster_size = 1
   location            = "West US"
   env_tag             = "inventory-dc1"
+  nomad_cluster_size  = "${length(module.inventory_dc1_networking.public_ip) + length(module.inventory_dc2_networking.public_ip) + length(module.checkout_dc1_networking.public_ip)}"
   resource_group_name = "${module.resource_group.name}"
   public_nic          = "${module.inventory_dc1_networking.public_nic_id}"
   public_ip           = "${module.inventory_dc1_networking.public_ip}"
@@ -69,7 +70,7 @@ module "inventory_dc2_storage" {
 # Create network resources
 module "inventory_dc2_networking" {
   source              = "./modules/networking"
-  vms_per_cluster     = 1
+  consul_cluster_size = 1
   name                = "inventory-dc2"
   location            = "East US"
   address_space       = ["10.0.0.0/16"]
@@ -82,9 +83,10 @@ module "inventory_dc2_networking" {
 module "inventory_dc2_compute" {
   source              = "./modules/compute"
   name                = "inventory-dc2-vm"
-  vms_per_cluster     = 1
+  consul_cluster_size = 1
   location            = "East US"
   env_tag             = "inventory-dc2"
+  nomad_cluster_size  = "${length(module.inventory_dc1_networking.public_ip) + length(module.inventory_dc2_networking.public_ip) + length(module.checkout_dc1_networking.public_ip)}"
   resource_group_name = "${module.resource_group.name}"
   public_nic          = "${module.inventory_dc2_networking.public_nic_id}"
   public_ip           = "${module.inventory_dc2_networking.public_ip}"
@@ -113,7 +115,7 @@ module "checkout_dc1_storage" {
 # Create network resources
 module "checkout_dc1_networking" {
   source              = "./modules/networking"
-  vms_per_cluster     = 1
+  consul_cluster_size = 1
   name                = "checkout-dc1"
   location            = "West US 2"
   address_space       = ["10.0.0.0/16"]
@@ -126,9 +128,10 @@ module "checkout_dc1_networking" {
 module "checkout_dc1_compute" {
   source              = "./modules/compute"
   name                = "checkout-dc1-vm"
-  vms_per_cluster     = 1
+  consul_cluster_size = 1
   location            = "West US 2"
   env_tag             = "checkout-dc1"
+  nomad_cluster_size  = "${length(module.inventory_dc1_networking.public_ip) + length(module.inventory_dc2_networking.public_ip) + length(module.checkout_dc1_networking.public_ip)}"
   resource_group_name = "${module.resource_group.name}"
   public_nic          = "${module.checkout_dc1_networking.public_nic_id}"
   public_ip           = "${module.checkout_dc1_networking.public_ip}"
