@@ -67,7 +67,7 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
   "server": true,
   "skip_leave_on_interrupt": true,
   "translate_wan_addrs": true,
-  "ui": true,
+  "ui": true
 }
 EOF
 
