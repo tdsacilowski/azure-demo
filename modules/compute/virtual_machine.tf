@@ -14,12 +14,12 @@ data "template_file" "bootstrap" {
 }
 
 resource "azurerm_virtual_machine" "demo_vm" {
-  count               = "${var.vms_per_cluster}"
-  name                = "${var.name}-${count.index}"
-  location            = "${var.location}"
-  resource_group_name = "${var.resource_group_name}"
+  count                 = "${var.vms_per_cluster}"
+  name                  = "${var.name}-${count.index}"
+  location              = "${var.location}"
+  resource_group_name   = "${var.resource_group_name}"
   network_interface_ids = ["${element(var.public_nic, count.index)}"]
-  vm_size = "Standard_A0"
+  vm_size               = "Standard_A0"
 
   storage_image_reference {
     publisher = "Canonical"
