@@ -1,5 +1,5 @@
 resource "azurerm_network_interface" "demo_pub_nic" {
-  count               = "${var.vms_per_cluster}"
+  count               = "${var.consul_cluster_size}"
   name                = "${var.name}-pubip-nic-${count.index}"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group_name}"

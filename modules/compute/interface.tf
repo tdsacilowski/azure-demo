@@ -8,9 +8,14 @@ variable "location" {
   description = "The location for the Virtual Network"
 }
 
-variable "vms_per_cluster" {
+variable "consul_cluster_size" {
   type        = "string"
-  description = "The number of VMs to create in each region"
+  description = "The number of servers to create for the Consul cluster"
+}
+
+variable "nomad_cluster_size" {
+  type        = "string"
+  description = "The number of servers to expect for the Nomad cluster"
 }
 
 variable "resource_group_name" {

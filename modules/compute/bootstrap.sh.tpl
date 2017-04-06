@@ -52,21 +52,22 @@ JOIN_WAN_QUOTED=$(echo ${join_wan} | sed 's/\([^,]*\)/"&"/g')
 
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {
+  "datacenter": "${dc}",
+  "node_name": "${node_name}",
+  "data_dir": "/opt/consul/data",
+  "log_level": "INFO",
+  "server": true,
+  "bootstrap_expect": ${consul_cluster_size},
+  "bind_addr": "0.0.0.0",
+  "client_addr": "0.0.0.0",
   "advertise_addr": "$${INSTANCE_PRIVATE_IP}",
   "advertise_addr_wan": "${public_ip}",
-  "bind_addr": "0.0.0.0",
-  "bootstrap_expect": ${vms_per_cluster},
-  "client_addr": "0.0.0.0",
-  "data_dir": "/opt/consul/data",
-  "datacenter": "${dc}",
-  "leave_on_terminate": true,
-  "node_name": "${node_name}",
+  "translate_wan_addrs": true,
   "retry_join": ["${join_ip}"],
   "retry_join_wan": [$${JOIN_WAN_QUOTED}],
-  "server": true,
-  "skip_leave_on_interrupt": true,
-  "translate_wan_addrs": true,
-  "ui": true
+  "ui": true,
+  "leave_on_terminate": true,
+  "skip_leave_on_interrupt": true
 }
 EOF
 
@@ -152,27 +153,37 @@ echo "Nomad installation complete."
 #######################################
 
 sudo tee /etc/nomad.d/nomad.hcl > /dev/null <<EOF
-name       = "${node_name}"
-data_dir   = "/opt/nomad/data"
-datacenter = "${dc}"
+region       = "global"
+datacenter   = "${dc}"
+name         = "${node_name}"
+data_dir     = "/opt/nomad/data"
+log_level    = "INFO"
+enable_debug = true
+
 bind_addr  = "0.0.0.0"
 
-server {
-  enabled          = true
-  bootstrap_expect = ${vms_per_cluster}
-}
-
-client {
-  enabled = true
+addresses {
+  rpc  = "$${INSTANCE_PRIVATE_IP}"
+  serf = "$${INSTANCE_PRIVATE_IP}"
 }
 
 advertise {
   http = "${public_ip}:4646"
   rpc  = "${public_ip}:4647"
-  serf = "${public_ip}:4647"
+  serf = "${public_ip}:4648"
 }
 
-consul {
+server {
+  enabled          = true
+  bootstrap_expect = ${nomad_cluster_size}
+}
+
+client {
+  enabled = true
+
+  options {
+    "driver.raw_exec.enable" = "1"
+  }
 }
 EOF
 
@@ -195,6 +206,49 @@ WantedBy=multi-user.target
 EOF
 
 
+
+#######################################
+# Setup web app
+#######################################
+if [[ "${dc}" =~ "inventory" ]]; then
+echo "Installing Nginx..."
+sudo mkdir -p /var/log/nginx
+sudo chmod -R 755 /var/log/nginx
+sudo apt-get install -y -q nginx
+
+
+sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
+HELLO FROM ${dc} in ${location}
+EOF
+
+sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX
+{"service": {
+  "name": "nginx",
+  "tags": ["web"],
+  "port": 80,
+    "checks": [
+      {
+        "id": "GET",
+        "script": "curl localhost >/dev/null 2>&1",
+        "interval": "10s"
+      },
+      {
+        "id": "HTTP-TCP",
+        "name": "HTTP TCP on port 80",
+        "tcp": "localhost:80",
+        "interval": "10s",
+        "timeout": "1s"
+      },
+        {
+        "id": "OS service status",
+        "script": "service nginx status",
+        "interval": "30s"
+      }]
+    }
+}
+NGINX
+
+fi
 
 #######################################
 # Setup web app
