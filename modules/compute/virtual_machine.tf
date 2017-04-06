@@ -8,6 +8,8 @@ data "template_file" "bootstrap" {
     node_name       = "${element(var.node_name, count.index)}"
     join_ip         = "${var.public_ip[0]}"
     location        = "${var.location}"
+    join_wan        = "${join(",", var.join_wan)}"
+    public_ip       = "${element(var.public_ip, count.index)}"
   }
 }
 
@@ -16,9 +18,7 @@ resource "azurerm_virtual_machine" "demo_vm" {
   name                = "${var.name}-${count.index}"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group_name}"
-
   network_interface_ids = ["${element(var.public_nic, count.index)}"]
-
   vm_size = "Standard_A0"
 
   storage_image_reference {
@@ -36,7 +36,7 @@ resource "azurerm_virtual_machine" "demo_vm" {
   }
 
   os_profile {
-    computer_name  = "hostname"
+    computer_name  = "${element(var.public_fqdn, count.index)}"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }

@@ -1,8 +1,0 @@
-# Passed on to the bootstrap script to allow each VM to query for
-# environment tags to add to Consul datacenter
-
-client_id = "[ENTER CLIENT_ID]"
-
-client_secret = "[ENTER CLIENT_SECRET]"
-
-tenant_id = "[ENTER TENANT_ID]"

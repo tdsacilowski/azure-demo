@@ -48,15 +48,20 @@ echo "Consul installation complete."
 # Get VM private ip address
 INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }')
 INSTANCE_PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+# Can't pass lists via terraform template_file (https://github.com/hashicorp/terraform/issues/9488)
+JOIN_WAN_QUOTED=$(echo ${join_wan} | sed 's/\([^,]*\)/"&"/g')
 
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {
+  "datacenter": "${dc}",
+  "node_name": "${node_name}",
+  "data_dir": "/opt/consul/data",
   "server": true,
-
+  "bootstrap_expect": ${vms_per_cluster},
   "bind_addr": "0.0.0.0",
   "client_addr": "0.0.0.0",
   "advertise_addr": "$${INSTANCE_PRIVATE_IP}",
-  "advertise_addr_wan": "$${INSTANCE_PUBLIC_IP}",
+  "advertise_addr_wan": "${public_ip}",
   "node_name": "${node_name}",
   "retry_join": ["${join_ip}"],
   "datacenter": "${dc}",
@@ -65,7 +70,12 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
   "leave_on_terminate": true,
   "skip_leave_on_interrupt": true,
   "translate_wan_addrs": true,
-  "bootstrap_expect": ${vms_per_cluster}
+  "translate_wan_addrs": true,
+  "retry_join": ["${join_ip}"],
+  "retry_join_wan": [$${JOIN_WAN_QUOTED}],
+  "ui": true,
+  "leave_on_terminate": true,
+  "skip_leave_on_interrupt": true
 }
 EOF
 
@@ -154,7 +164,7 @@ sudo tee /etc/nomad.d/nomad.hcl > /dev/null <<EOF
 name       = "${node_name}"
 data_dir   = "/opt/nomad/data"
 datacenter = "${dc}"
-bind_addr = "0.0.0.0"
+bind_addr  = "0.0.0.0"
 
 server {
   enabled          = true
@@ -165,13 +175,12 @@ client {
   enabled = true
 }
 
-addresses {
-  rpc  = "$$INSTANCE_PRIVATE_IP"
-  serf = "$$INSTANCE_PRIVATE_IP"
-}
 advertise {
-  http = "$$INSTANCE_PRIVATE_IP:4646"
+  http = "${public_ip}:4646"
+  rpc  = "${public_ip}:4647"
+  serf = "${public_ip}:4647"
 }
+
 consul {
 }
 EOF
