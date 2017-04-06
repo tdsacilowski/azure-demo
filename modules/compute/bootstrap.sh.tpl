@@ -47,7 +47,6 @@ echo "Consul installation complete."
 
 # Get VM private ip address
 INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }')
-INSTANCE_PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 # Can't pass lists via terraform template_file (https://github.com/hashicorp/terraform/issues/9488)
 JOIN_WAN_QUOTED=$(echo ${join_wan} | sed 's/\([^,]*\)/"&"/g')
 
