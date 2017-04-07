@@ -47,7 +47,6 @@ echo "Consul installation complete."
 
 # Get VM private ip address
 INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }')
-
 # Can't pass lists via terraform template_file (https://github.com/hashicorp/terraform/issues/9488)
 JOIN_WAN_QUOTED=$(echo ${join_wan} | sed 's/\([^,]*\)/"&"/g')
 
@@ -57,19 +56,15 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
   "node_name": "${node_name}",
   "data_dir": "/opt/consul/data",
   "log_level": "INFO",
-  
   "server": true,
   "bootstrap_expect": ${consul_cluster_size},
-  
   "bind_addr": "0.0.0.0",
   "client_addr": "0.0.0.0",
   "advertise_addr": "$${INSTANCE_PRIVATE_IP}",
   "advertise_addr_wan": "${public_ip}",
   "translate_wan_addrs": true,
-
   "retry_join": ["${join_ip}"],
   "retry_join_wan": [$${JOIN_WAN_QUOTED}],
-  
   "ui": true,
   "leave_on_terminate": true,
   "skip_leave_on_interrupt": true
@@ -210,6 +205,51 @@ KillSignal=SIGTERM
 WantedBy=multi-user.target
 EOF
 
+
+
+#######################################
+# Setup web app
+#######################################
+if [[ "${dc}" =~ "inventory" ]]; then
+echo "Installing Nginx..."
+sudo mkdir -p /var/log/nginx
+sudo chmod -R 755 /var/log/nginx
+sudo apt-get install -y -q nginx
+
+
+sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
+HELLO FROM ${dc} in ${location}
+EOF
+
+sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX
+{"service": {
+  "name": "nginx",
+  "tags": ["web"],
+  "port": 80,
+    "checks": [
+      {
+        "id": "GET",
+        "script": "curl localhost >/dev/null 2>&1",
+        "interval": "10s"
+      },
+      {
+        "id": "HTTP-TCP",
+        "name": "HTTP TCP on port 80",
+        "tcp": "localhost:80",
+        "interval": "10s",
+        "timeout": "1s"
+      },
+        {
+        "id": "OS service status",
+        "script": "service nginx status",
+        "interval": "30s"
+      }]
+    }
+}
+NGINX
+
+fi
+
 #######################################
 # Setup web app
 #######################################
@@ -262,3 +302,5 @@ sudo systemctl start consul
 
 sudo systemctl enable nomad.service
 sudo systemctl start nomad
+
+#sudo service nginx start
