@@ -145,6 +145,7 @@ sudo mkdir -pm 0600 /etc/nomad.d
 # setup nomad directories
 sudo mkdir -pm 0600 /opt/nomad
 sudo mkdir -p /opt/nomad/data
+sudo mkdir -p /opt/nomad/jobs
 
 echo "Nomad installation complete."
 
@@ -205,7 +206,38 @@ KillSignal=SIGTERM
 WantedBy=multi-user.target
 EOF
 
+#######################################
+# DOCKER INSTALL
+#######################################
 
+sudo apt -qq -y update
+sudo apt -qq -y install --no-install-recommends \
+    linux-image-extra-$(uname -r) \
+    linux-image-extra-virtual
+
+sudo apt -qq -y install --no-install-recommends \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+
+curl -fsSL https://apt.dockerproject.org/gpg | sudo apt-key add -
+
+sudo add-apt-repository \
+       "deb https://apt.dockerproject.org/repo/ \
+       ubuntu-$(lsb_release -cs) \
+       main"
+
+sudo apt -qq -y update
+sudo apt -qq -y install docker-engine
+sudo usermod -aG docker ubuntu
+
+#######################################
+# Copy Over Nomad Jobs
+#######################################
+sudo curl -o /opt/nomad/jobs/redis.hcl -L https://gist.githubusercontent.com/bensojona/3f1b313a53c7446cac1601e00e9c837c/raw/d4e8c5e2df8b6534fbbcdbd466ea2e2257c99364/redis.hcl
+sudo curl -o /opt/nomad/jobs/inventory.hcl -L https://gist.githubusercontent.com/bensojona/964f39a4f40a7f24f2cc426939199485/raw/3759cffcd09b67bfc60d41c210c026308694471c/inventory.hcl
+sudo curl -o /opt/nomad/jobs/checkout.hcl -L https://gist.githubusercontent.com/bensojona/585e207d17b7e2e4e55777bf799b53be/raw/5af6d17e4a53fd44bb3570e566eb225e82435644/checkout.hcl
 
 #######################################
 # Setup web app
@@ -215,50 +247,6 @@ echo "Installing Nginx..."
 sudo mkdir -p /var/log/nginx
 sudo chmod -R 755 /var/log/nginx
 sudo apt-get install -y -q nginx
-
-
-sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
-HELLO FROM ${dc} in ${location}
-EOF
-
-sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX
-{"service": {
-  "name": "nginx",
-  "tags": ["web"],
-  "port": 80,
-    "checks": [
-      {
-        "id": "GET",
-        "script": "curl localhost >/dev/null 2>&1",
-        "interval": "10s"
-      },
-      {
-        "id": "HTTP-TCP",
-        "name": "HTTP TCP on port 80",
-        "tcp": "localhost:80",
-        "interval": "10s",
-        "timeout": "1s"
-      },
-        {
-        "id": "OS service status",
-        "script": "service nginx status",
-        "interval": "30s"
-      }]
-    }
-}
-NGINX
-
-fi
-
-#######################################
-# Setup web app
-#######################################
-if [[ "${dc}" =~ "inventory" ]]; then
-echo "Installing Nginx..."
-sudo mkdir -p /var/log/nginx
-sudo chmod -R 755 /var/log/nginx
-sudo apt-get install -y -q nginx
-
 
 sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
 HELLO FROM ${dc} in ${location}
