@@ -15,7 +15,7 @@ job "checkout" {
   }
 
   group "checkout" {
-    count = 30
+    count = 10
 
     restart {
       interval = "1m"
