@@ -11,15 +11,16 @@
 # Install Azure CLI
 resource "null_resource" "install_azure_cli" {
   depends_on = ["azurerm_virtual_machine.vm"]
+  count      = "${var.vm_count}"
 
   provisioner "remote-exec" {
-    inline     = [
+    inline = [
       "${file("${path.root}/../scripts/install_azure_cli.sh")}",
-      "az login -u ${var.client_id} -p ${var.client_secret} --service-principal --tenant ${var.tenant_id}"
+      "az login -u ${var.client_id} -p ${var.client_secret} --service-principal --tenant ${var.tenant_id}",
     ]
 
     connection {
-      host     = "${azurerm_public_ip.vm_pub_ip.ip_address}"
+      host     = "${element(azurerm_public_ip.vm_pub_ip.*.ip_address, count.index)}"
       type     = "ssh"
       user     = "${var.os_user_name}"
       password = "${var.os_user_password}"
@@ -35,7 +36,7 @@ resource "null_resource" "create_vnet_gateway_westus" {
     inline = ["${data.template_file.vnet_gateway_westus.rendered}"]
 
     connection {
-      host     = "${azurerm_public_ip.vm_pub_ip.ip_address}"
+      host     = "${azurerm_public_ip.vm_pub_ip.0.ip_address}"
       type     = "ssh"
       user     = "${var.os_user_name}"
       password = "${var.os_user_password}"
@@ -50,7 +51,7 @@ resource "null_resource" "create_vnet_gateway_eastus" {
     inline = ["${data.template_file.vnet_gateway_eastus.rendered}"]
 
     connection {
-      host     = "${azurerm_public_ip.vm_pub_ip.ip_address}"
+      host     = "${azurerm_public_ip.vm_pub_ip.0.ip_address}"
       type     = "ssh"
       user     = "${var.os_user_name}"
       password = "${var.os_user_password}"
@@ -65,7 +66,7 @@ resource "null_resource" "create_vnet_gateway_westus2" {
     inline = ["${data.template_file.vnet_gateway_westus2.rendered}"]
 
     connection {
-      host     = "${azurerm_public_ip.vm_pub_ip.ip_address}"
+      host     = "${azurerm_public_ip.vm_pub_ip.0.ip_address}"
       type     = "ssh"
       user     = "${var.os_user_name}"
       password = "${var.os_user_password}"
@@ -77,14 +78,14 @@ resource "null_resource" "create_vpn_connections" {
   depends_on = [
     "null_resource.create_vnet_gateway_westus",
     "null_resource.create_vnet_gateway_eastus",
-    "null_resource.create_vnet_gateway_westus2"
+    "null_resource.create_vnet_gateway_westus2",
   ]
 
   provisioner "remote-exec" {
     inline = ["${data.template_file.vpn_connections.rendered}"]
 
     connection {
-      host     = "${azurerm_public_ip.vm_pub_ip.ip_address}"
+      host     = "${azurerm_public_ip.vm_pub_ip.0.ip_address}"
       type     = "ssh"
       user     = "${var.os_user_name}"
       password = "${var.os_user_password}"

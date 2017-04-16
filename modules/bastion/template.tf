@@ -45,8 +45,8 @@ data "template_file" "vpn_connections" {
   template = "${file("${path.root}/../scripts/templates/vpn-connection.sh.tpl")}"
 
   vars {
-    resource_group       = "${var.resource_group_name}"
-    vn_gw_name           = "${var.vn_gw_name}"
+    resource_group = "${var.resource_group_name}"
+    vn_gw_name     = "${var.vn_gw_name}"
     vpn_shared_key = "${var.vpn_shared_key}"
   }
 }

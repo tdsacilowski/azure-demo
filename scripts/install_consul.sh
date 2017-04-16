@@ -46,7 +46,7 @@ echo "Consul installation complete."
 echo "Fetching consul-template..."
 cd /tmp/
 
-curl -o consul-template.zip https://releases.hashicorp.com/consul-template/$${CONSUL_TEMPLATE_VERSION}/consul-template_$${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip
+curl -o consul-template.zip https://releases.hashicorp.com/consul-template/${CONSUL_TEMPLATE_VERSION}/consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.zip
 
 echo "Installing consul-template..."
 unzip consul-template.zip

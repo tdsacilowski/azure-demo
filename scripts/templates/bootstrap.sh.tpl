@@ -8,12 +8,12 @@ set -xo pipefail
 # Get VM private ip address
 INSTANCE_PRIVATE_IP=$(ifconfig eth0 | grep "inet addr" | awk '{ print substr($2,6) }')
 
-# Can't pass lists via terraform template_file (https://github.com/hashicorp/terraform/issues/9488)
-JOIN_WAN_QUOTED=$(echo ${join_wan} | sed 's/\([^,]*\)/"&"/g')
+JOIN_IP=$(az network nic list --query "[?tags.environment != null] | [?tags.environment == '${dc_env_tag}'].ipConfigurations[0].privateIpAddress | join(', ', @)")
+JOIN_WAN=$(echo `az network nic list --query "[?tags.environment != null] | [?contains(tags.environment, '${wan_env_tag}')].ipConfigurations[].privateIpAddress"`)
 
 sudo tee /etc/consul.d/config.json > /dev/null <<EOF
 {
-  "datacenter": "${dc}",
+  "datacenter": "${dc_env_tag}",
   "node_name": "${node_name}",
   "data_dir": "/opt/consul/data",
   "log_level": "INFO",
@@ -22,8 +22,8 @@ sudo tee /etc/consul.d/config.json > /dev/null <<EOF
   "bind_addr": "0.0.0.0",
   "client_addr": "0.0.0.0",
   "advertise_addr": "$${INSTANCE_PRIVATE_IP}",
-  "retry_join": ["${join_ip}"],
-  "retry_join_wan": [$${JOIN_WAN_QUOTED}],
+  "retry_join": [ $${JOIN_IP} ],
+  "retry_join_wan": $${JOIN_WAN},
   "ui": true,
   "leave_on_terminate": true,
   "skip_leave_on_interrupt": true
@@ -54,7 +54,7 @@ EOF
 
 sudo tee /etc/nomad.d/nomad.hcl > /dev/null <<EOF
 region       = "global"
-datacenter   = "${dc}"
+datacenter   = "${dc_env_tag}"
 name         = "${node_name}"
 data_dir     = "/opt/nomad/data"
 log_level    = "DEBUG"
@@ -117,14 +117,14 @@ sudo chmod +x /usr/local/bin/redis-cli-stats
 # Setup NGINX Web App
 #######################################
 
-if [[ "${dc}" =~ "inventory" ]]; then
+if [[ "${dc_env_tag}" =~ "inventory" ]]; then
 echo "Installing Nginx..."
 sudo mkdir -p /var/log/nginx
 sudo chmod -R 755 /var/log/nginx
 sudo apt-get install -y -q nginx
 
 sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
-HELLO FROM ${dc} in ${location}
+HELLO FROM ${dc_env_tag} in ${location}
 EOF
 
 sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX

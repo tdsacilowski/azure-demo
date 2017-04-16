@@ -1,10 +1,10 @@
-provider "azurerm" {}
-
 variable "client_id" {}
 variable "client_secret" {}
 variable "tenant_id" {}
 variable "os_user_password" {}
 variable "vpn_shared_key" {}
+
+provider "azurerm" {}
 
 #######################################
 # Create Resource Group
@@ -92,13 +92,14 @@ module "bastion_westus" {
   source = "../modules/bastion"
 
   # Standard VM parameters
+  vm_count            = 1
   resource_group_name = "${module.resource_group.name}"
-  storage_account     = "${module.inventory_westus_storage.primary_blob_endpoint}"
+  sa_blob_endpoint    = "${module.inventory_westus_storage.primary_blob_endpoint}"
   container_name      = "${module.inventory_westus_storage.container_name}"
   vm_name             = "bastion-westus"
-  vm_location         = "West US"
-  vm_subnet_id        = "${module.inventory_westus_network.subnet_id}"
-  vm_size             = "Standard_D2_v2"
+  vm_location         = ["West US"]
+  vm_subnet_id        = ["${module.inventory_westus_network.subnet_id}"]
+  vm_size             = "Standard_A1_v2"
   os_user_name        = "ubuntu"
   os_user_password    = "${var.os_user_password}"
   env_tag             = "bastion-host"
@@ -116,60 +117,3 @@ module "bastion_westus" {
   vn_gw_address_prefix_westus2 = "10.2.1.0/24"
   vpn_shared_key               = "${var.vpn_shared_key}"
 }
-
-#######################################
-# Create Consul & Nomad Clusters
-#######################################
-/*
-module "inventory_west_compute" {
-  source              = "./modules/compute"
-  name                = "inventory-westus-vm"
-  consul_cluster_size = 1
-  location            = "West US"
-  env_tag             = "inventory-westus"
-  nomad_cluster_size  = "${length(module.inventory_west_network.public_ip) + length(module.inventory_east_network.public_ip) + length(module.checkout_westus2_network.public_ip)}"
-  resource_group_name = "${module.resource_group.name}"
-  public_nic          = "${module.inventory_west_network.public_nic_id}"
-  public_ip           = "${module.inventory_west_network.public_ip}"
-  public_fqdn         = "${module.inventory_west_network.public_fqdn}"
-  join_wan            = "${concat(module.checkout_westus2_network.public_ip, module.inventory_west_network.public_ip, module.inventory_east_network.public_ip)}"
-  node_name           = "${module.inventory_west_network.public_fqdn}"
-  storage_account     = "${module.inventory_west_storage.primary_blob_endpoint}"
-  container_name      = "${module.inventory_west_storage.container_name}"
-}
-
-module "inventory_east_compute" {
-  source              = "./modules/compute"
-  name                = "inventory-eastus-vm"
-  consul_cluster_size = 1
-  location            = "East US"
-  env_tag             = "inventory-eastus"
-  nomad_cluster_size  = "${length(module.inventory_west_network.public_ip) + length(module.inventory_east_network.public_ip) + length(module.checkout_westus2_network.public_ip)}"
-  resource_group_name = "${module.resource_group.name}"
-  public_nic          = "${module.inventory_east_network.public_nic_id}"
-  public_ip           = "${module.inventory_east_network.public_ip}"
-  public_fqdn         = "${module.inventory_east_network.public_fqdn}"
-  join_wan            = "${concat(module.checkout_westus2_network.public_ip, module.inventory_west_network.public_ip, module.inventory_east_network.public_ip)}"
-  node_name           = "${module.inventory_east_network.public_fqdn}"
-  storage_account     = "${module.inventory_east_storage.primary_blob_endpoint}"
-  container_name      = "${module.inventory_east_storage.container_name}"
-}
-
-module "checkout_westus2_compute" {
-  source              = "./modules/compute"
-  name                = "checkout-westus2-vm"
-  consul_cluster_size = 1
-  location            = "West US 2"
-  env_tag             = "checkout-westus2"
-  nomad_cluster_size  = "${length(module.inventory_west_network.public_ip) + length(module.inventory_east_network.public_ip) + length(module.checkout_westus2_network.public_ip)}"
-  resource_group_name = "${module.resource_group.name}"
-  public_nic          = "${module.checkout_westus2_network.public_nic_id}"
-  public_ip           = "${module.checkout_westus2_network.public_ip}"
-  public_fqdn         = "${module.checkout_westus2_network.public_fqdn}"
-  join_wan            = "${concat(module.checkout_westus2_network.public_ip, module.inventory_west_network.public_ip, module.inventory_east_network.public_ip)}"
-  node_name           = "${module.checkout_westus2_network.public_fqdn}"
-  storage_account     = "${module.checkout_westus2_storage.primary_blob_endpoint}"
-  container_name      = "${module.checkout_westus2_storage.container_name}"
-}
-*/
-

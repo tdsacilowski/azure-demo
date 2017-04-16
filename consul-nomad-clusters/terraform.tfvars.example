@@ -1,0 +1,4 @@
+client_id = "[ENTER VALUE]"
+client_secret = "[ENTER VALUE]"
+tenant_id = "[ENTER VALUE]"
+os_user_password = "[ENTER VALUE]"
