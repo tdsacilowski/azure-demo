@@ -1,0 +1,88 @@
+#!/bin/bash
+set -xo pipefail
+
+#az login -u [CLIENT_ID] -p [CLIENT_SECRET] --service-principal --tenant [TENANT_ID]
+
+# Resource Group
+az group create --location westus --name Azure-Demo2
+
+# ---
+
+# Storage Account (Inventory West US)
+az storage account create --location westus --name 20170415demo2sawestus --resource-group Azure-Demo2 --sku Standard_LRS
+
+# Storage Container (Inventory West US)
+az storage container create --name vhd --account-name 20170415demo2sawestus
+
+# Storage Account (Inventory East US)
+az storage account create --location eastus --name 20170415demo2saeastus --resource-group Azure-Demo2 --sku Standard_LRS
+
+# Storage Container (Inventory East US)
+az storage container create --name vhd --account-name 20170415demo2saeastus
+
+# Storage Account (Checkout West US 2)
+az storage account create --location westus2 --name 20170415demo2sawestus2 --resource-group Azure-Demo2 --sku Standard_LRS
+
+# Storage Container (Checkout West US 2)
+az storage container create --name vhd --account-name 20170415demo2sawestus2
+
+# ---
+
+# VNet (Inventory West US)
+az network vnet create --name vnet-inventory-westus --resource-group Azure-Demo2 --address-prefixes 10.0.0.0/16 --location westus
+
+# Cluster Subnet (Inventory West US)
+az network vnet subnet create --resource-group Azure-Demo2 --vnet-name vnet-inventory-westus --name subnet-inventory-westus --address-prefix 10.0.2.0/24
+
+# VNet (Inventory East US)
+az network vnet create --name vnet-inventory-eastus --resource-group Azure-Demo2 --address-prefixes 10.1.0.0/16 --location eastus
+
+# Cluster Subnet (Inventory East US)
+az network vnet subnet create --resource-group Azure-Demo2 --vnet-name vnet-inventory-eastus --name subnet-inventory-eastus --address-prefix 10.1.2.0/24
+
+# VNet (Checkout West US 2)
+az network vnet create --name vnet-checkout-westus2 --resource-group Azure-Demo2 --address-prefixes 10.2.0.0/16 --location westus2
+
+# Cluster Subnet (Checkout West US 2)
+az network vnet subnet create --resource-group Azure-Demo2 --vnet-name vnet-checkout-westus2 --name subnet-checkout-westus --address-prefix 10.2.2.0/24
+
+# ---
+
+# VNet Gateway Public IP (Inventory West US)
+az network public-ip create --resource-group Azure-Demo2 --name vn-gw-pub-ip-westus --location westus
+
+# VNet Gateway Public IP (Inventory East US)
+az network public-ip create --resource-group Azure-Demo2 --name vn-gw-pub-ip-eastus --location eastus
+
+# VNet Gateway Public IP ((Checkout West US 2)
+az network public-ip create --resource-group Azure-Demo2 --name vn-gw-pub-ip-westus2 --location westus2
+
+# ---
+
+# VNet Gateway Subnet (Inventory West US)
+az network vnet subnet create --resource-group Azure-Demo2 --vnet-name vnet-inventory-westus --name GatewaySubnet --address-prefix 10.0.1.0/24
+
+# VNet Gateway Subnet (Inventory East US)
+az network vnet subnet create --resource-group Azure-Demo2 --vnet-name vnet-inventory-eastus --name GatewaySubnet --address-prefix 10.1.1.0/24
+
+# VNet Gateway Subnet (Checkout West US 2)
+az network vnet subnet create --resource-group Azure-Demo2 --vnet-name vnet-checkout-westus2 --name GatewaySubnet --address-prefix 10.2.1.0/24
+
+# ---
+
+# VNet Gateway (Inventory West US)
+az network vnet-gateway create --sku Basic --resource-group Azure-Demo2 --gateway-type Vpn --public-ip-address vn-gw-pub-ip-westus --vpn-type RouteBased --name vn-gw-westus --location westus --vnet vnet-inventory-westus
+
+# VNet Gateway (Inventory East US)
+az network vnet-gateway create --sku Basic --resource-group Azure-Demo2 --gateway-type Vpn --public-ip-address vn-gw-pub-ip-eastus --vpn-type RouteBased --name vn-gw-eastus --location eastus --vnet vnet-inventory-eastus
+
+# VNet Gateway (Checkout West US 2)
+az network vnet-gateway create --sku Basic --resource-group Azure-Demo2 --gateway-type Vpn --public-ip-address vn-gw-pub-ip-westus2 --vpn-type RouteBased --name vn-gw-westus2 --location westus2 --vnet vnet-checkout-westus2
+
+# VPN Connections
+az network vpn-connection create --name vpn-eastus-westus --resource-group Azure-Demo2 --vnet-gateway1 vn-gw-eastus --location eastus --shared-key Password1234 --vnet-gateway2 vn-gw-westus
+az network vpn-connection create --name vpn-eastus-westus2 --resource-group Azure-Demo2 --vnet-gateway1 vn-gw-eastus --location eastus --shared-key Password1234 --vnet-gateway2 vn-gw-westus2
+az network vpn-connection create --name vpn-westus-eastus --resource-group Azure-Demo2 --vnet-gateway1 vn-gw-westus --location westus --shared-key Password1234 --vnet-gateway2 vn-gw-eastus
+az network vpn-connection create --name vpn-westus-westus2 --resource-group Azure-Demo2 --vnet-gateway1 vn-gw-westus --location westus --shared-key Password1234 --vnet-gateway2 vn-gw-westus2
+az network vpn-connection create --name vpn-westus2-eastus --resource-group Azure-Demo2 --vnet-gateway1 vn-gw-westus2 --location westus2 --shared-key Password1234 --vnet-gateway2 vn-gw-eastus
+az network vpn-connection create --name vpn-westus2-westus --resource-group Azure-Demo2 --vnet-gateway1 vn-gw-westus2 --location westus2 --shared-key Password1234 --vnet-gateway2 vn-gw-westus
