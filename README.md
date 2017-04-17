@@ -23,5 +23,6 @@ Steps to deploy:
 
 One caveat:
 * You can use `terraform destroy` from the `consul-nomad-cluster` directory to tear down your clusters. However, this doesn't work properly for the `bast-infrastructure` sub-project because we're building some resources manually via the Azure CLI. The easiest way to tear down the environment in this case is to go to the Azure Portal and simply delete the Resource Group, which will delete all associated resources.
+	* NOTE: if you take this approach, make sure to delete your `terraform.tfstate*`.
 
 There's still a bunch of refactoring to do here...

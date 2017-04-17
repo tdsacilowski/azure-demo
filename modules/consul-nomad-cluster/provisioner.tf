@@ -13,7 +13,7 @@ resource "null_resource" "install_clients" {
       "${file("${path.root}/../scripts/install_nomad.sh")}",
       "${file("${path.root}/../scripts/install_docker.sh")}",
       "${file("${path.root}/../scripts/install_azure_cli.sh")}",
-      "az login -u ${var.client_id} -p ${var.client_secret} --service-principal --tenant ${var.tenant_id}",
+      "az login -u ${var.client_id} -p ${var.client_secret} --service-principal --tenant ${var.tenant_id}"
     ]
 
     connection {

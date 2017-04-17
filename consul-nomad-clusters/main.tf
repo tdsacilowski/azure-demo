@@ -72,7 +72,7 @@ module "inventory_eastus_cluster" {
   client_id          = "${var.client_id}"
   client_secret      = "${var.client_secret}"
   tenant_id          = "${var.tenant_id}"
-  nomad_cluster_size = 1
+  nomad_cluster_size = 3
   wan_env_tag        = "consul"
 }
 
@@ -100,6 +100,6 @@ module "checkout_westus2_cluster" {
   client_id          = "${var.client_id}"
   client_secret      = "${var.client_secret}"
   tenant_id          = "${var.tenant_id}"
-  nomad_cluster_size = 1
+  nomad_cluster_size = 3
   wan_env_tag        = "consul"
 }
