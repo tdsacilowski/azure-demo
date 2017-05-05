@@ -3,7 +3,7 @@
 #######################################
 
 data "template_file" "vnet_gateway_westus" {
-  template = "${file("${path.root}/../scripts/templates/vnet-gateway.sh.tpl")}"
+  template = "${file("${path.root}/../../scripts/templates/vnet-gateway.sh.tpl")}"
 
   vars {
     resource_group       = "${var.resource_group_name}"
@@ -16,7 +16,7 @@ data "template_file" "vnet_gateway_westus" {
 }
 
 data "template_file" "vnet_gateway_eastus" {
-  template = "${file("${path.root}/../scripts/templates/vnet-gateway.sh.tpl")}"
+  template = "${file("${path.root}/../../scripts/templates/vnet-gateway.sh.tpl")}"
 
   vars {
     resource_group       = "${var.resource_group_name}"
@@ -29,7 +29,7 @@ data "template_file" "vnet_gateway_eastus" {
 }
 
 data "template_file" "vnet_gateway_westus2" {
-  template = "${file("${path.root}/../scripts/templates/vnet-gateway.sh.tpl")}"
+  template = "${file("${path.root}/../../scripts/templates/vnet-gateway.sh.tpl")}"
 
   vars {
     resource_group       = "${var.resource_group_name}"
@@ -42,7 +42,7 @@ data "template_file" "vnet_gateway_westus2" {
 }
 
 data "template_file" "vpn_connections" {
-  template = "${file("${path.root}/../scripts/templates/vpn-connection.sh.tpl")}"
+  template = "${file("${path.root}/../../scripts/templates/vpn-connection.sh.tpl")}"
 
   vars {
     resource_group = "${var.resource_group_name}"

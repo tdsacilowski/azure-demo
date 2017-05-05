@@ -1,6 +1,6 @@
 job "redis" {
   region      = "global"
-  datacenters = ["checkout-dc1"]
+  datacenters = ["consul-checkout-westus2"]
   type        = "service"
   priority    = 50
 
@@ -52,7 +52,7 @@ job "redis" {
       service {
         name = "redis"
         port = "redis"
-        tags = ["nomad", "checkout-dc1"]
+        tags = ["nomad", "consul-checkout-westus2"]
 
         check {
           name     = "redis alive"

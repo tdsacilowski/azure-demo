@@ -22,6 +22,11 @@ variable "container_name" {
   description = "The name of the Storage Container in which to store virtual machine VHDs"
 }
 
+variable "packer_image_uri" {
+  type        = "string"
+  description = "The URI for the Hashi-stack (Consul/Nomad/Vault) VM image created by Packer"
+}
+
 variable "vm_name" {
   type        = "string"
   description = "The prefix to add to the virtual machine(s) and associated resources"
@@ -64,14 +69,16 @@ variable "env_tag" {
 variable "client_id" {}
 variable "client_secret" {}
 variable "tenant_id" {}
-variable "vn_gw_name" {}
-variable "vn_name_westus" {}
-variable "vn_gw_address_prefix_westus" {}
-variable "vn_name_eastus" {}
-variable "vn_gw_address_prefix_eastus" {}
-variable "vn_name_westus2" {}
-variable "vn_gw_address_prefix_westus2" {}
-variable "vpn_shared_key" {}
+
+variable "wan_env_tag" {
+  type        = "string"
+  description = "The environment tag keyword to look for when joining Consul clusters over WAN"
+}
+
+variable "nomad_cluster_size" {
+  type        = "string"
+  description = "Total number of Nomad servers across all regions"
+}
 
 #######################################
 # Outputs
@@ -79,4 +86,8 @@ variable "vpn_shared_key" {}
 
 output "public_ip" {
   value = ["${azurerm_public_ip.vm_pub_ip.*.ip_address}"]
+}
+
+output "private_ip" {
+  value = ["${azurerm_network_interface.vm_pub_nic.*.private_ip_address}"]
 }

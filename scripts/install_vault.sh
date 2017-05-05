@@ -6,7 +6,7 @@ echo "Waiting 180 seconds for cloud-init to complete."
 timeout 180 /bin/bash -c \
   'until stat /var/lib/cloud/instance/boot-finished 2>/dev/null; do echo "Waiting ..."; sleep 2; done'
 
-NOMAD_VERSION=0.5.6
+VAULT_VERSION=0.7.0
 
 #######################################
 # INSTALL DEPENDENCIES
@@ -17,24 +17,18 @@ sudo apt -qq -y update
 sudo apt install -qq -y curl unzip jq
 
 #######################################
-# NOMAD INSTALL
+# VAULT INSTALL
 #######################################
 
-echo "Fetching Nomad..."
+echo "Fetching Vault..."
 cd /tmp/
 
-curl -o nomad.zip https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip
+curl -o vault.zip https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
 
-echo "Installing Nomad..."
-unzip nomad.zip
-rm nomad.zip
-sudo chmod +x nomad
-sudo mv nomad /usr/bin/nomad
-sudo mkdir -pm 0600 /etc/nomad.d
-
-# setup nomad directories
-sudo mkdir -pm 0600 /opt/nomad
-sudo mkdir -p /opt/nomad/data
-sudo mkdir -p /opt/nomad/jobs
-
-echo "Nomad installation complete."
+echo "Installing Vault..."
+unzip vault.zip
+rm vault.zip
+sudo chmod +x vault
+sudo mv vault /usr/bin/vault
+sudo mkdir -pm 0600 /etc/vault.d
+echo "Vault installation complete."

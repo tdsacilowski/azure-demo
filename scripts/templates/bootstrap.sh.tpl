@@ -37,10 +37,44 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-EnvironmentFile=-/etc/sysconfig/consul
-Environment=GOMAXPROCS=2
-Restart=on-failure
 ExecStart=/usr/bin/consul agent -config-dir=/etc/consul.d
+Restart=on-failure
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#######################################
+# VAULT CONFIGURATION
+#######################################
+
+sudo tee /etc/vault.d/vault.hcl > /dev/null <<EOF
+cluster_name = "${dc_env_tag}"
+
+storage "consul" {
+  address = "127.0.0.1:8500"
+  path    = "vault"
+}
+
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = 1
+}
+
+ui=true
+EOF
+
+sudo tee /etc/systemd/system/vault.service > /dev/null <<EOF
+[Unit]
+Description=vault
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/vault server -config=/etc/vault.d
+Restart=on-failure
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGTERM
 
@@ -93,9 +127,8 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-EnvironmentFile=-/etc/sysconfig/nomad
-Restart=on-failure
 ExecStart=/usr/bin/nomad agent -config=/etc/nomad.d
+Restart=on-failure
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGTERM
 
@@ -104,24 +137,14 @@ WantedBy=multi-user.target
 EOF
 
 #######################################
-# Nomad Jobs & Create Prepared Query
-#######################################
-sudo curl -o /opt/nomad/jobs/redis.hcl -L https://raw.githubusercontent.com/tdsacilowski/azure-demo/master/scripts/nomad_jobs/redis.hcl
-sudo curl -o /opt/nomad/jobs/inventory.hcl -L https://raw.githubusercontent.com/tdsacilowski/azure-demo/master/scripts/nomad_jobs/inventory.hcl
-sudo curl -o /opt/nomad/jobs/checkout.hcl -L https://raw.githubusercontent.com/tdsacilowski/azure-demo/master/scripts/nomad_jobs/checkout.hcl
-
-sudo curl -o /usr/local/bin/redis-cli-stats -L https://s3.amazonaws.com/hashicorp-consul-nomad-demo/bin/redis-cli-stats
-sudo chmod +x /usr/local/bin/redis-cli-stats
-
-#######################################
 # Setup NGINX Web App
 #######################################
 
-if [[ "${dc_env_tag}" =~ "inventory" ]]; then
 echo "Installing Nginx..."
 sudo mkdir -p /var/log/nginx
 sudo chmod -R 755 /var/log/nginx
-sudo apt-get install -y -q nginx
+sudo apt -qq -y update
+sudo apt install -y -q nginx
 
 sudo tee /var/www/html/index.nginx-debian.html > /dev/null << EOF
 HELLO FROM ${dc_env_tag} in ${location}
@@ -136,7 +159,7 @@ sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX
       {
         "id": "GET",
         "script": "curl localhost >/dev/null 2>&1",
-        "interval": "10s"
+        "interval": "5s"
       },
       {
         "id": "HTTP-TCP",
@@ -148,13 +171,11 @@ sudo tee /etc/consul.d/nginx.json > /dev/null << NGINX
         {
         "id": "OS service status",
         "script": "service nginx status",
-        "interval": "30s"
+        "interval": "5s"
       }]
     }
 }
 NGINX
-
-fi
 
 #######################################
 # START SERVICES
@@ -163,7 +184,43 @@ fi
 sudo systemctl enable consul.service
 sudo systemctl start consul
 
+sudo systemctl enable vault.service
+#sudo systemctl start vault
+
 sudo systemctl enable nomad.service
-sudo systemctl start nomad
+#sudo systemctl start nomad
 
 # sudo service nginx start
+
+#######################################
+# Files & Etc for Demo
+#######################################
+
+sleep 60
+
+# Redis CLI & stats program
+sudo apt install -y -q redis-tools
+sudo curl -o /usr/local/bin/redis-cli-stats -L https://s3.amazonaws.com/hashicorp-consul-nomad-demo/bin/redis-cli-stats
+sudo chmod +x /usr/local/bin/redis-cli-stats
+
+# Prepared query
+curl \
+    -H "Content-Type: application/json" \
+    -LX POST \
+    -d \
+'{
+  "Name": "",
+  "Template": {
+    "Type": "name_prefix_match"
+  },
+  "Service": {
+    "Service": "$${name.full}",
+    "Failover": {
+      "NearestN": 1
+    },
+    "OnlyPassing": true
+  },
+  "DNS": {
+    "TTL": "2s"
+  }
+}' http://localhost:8500/v1/query

@@ -9,9 +9,6 @@ resource "azurerm_public_ip" "vm_pub_ip" {
   resource_group_name          = "${var.resource_group_name}"
   public_ip_address_allocation = "static"
 
-  #https://github.com/hashicorp/terraform/issues/6634#issuecomment-222843191
-  domain_name_label = "${format("%s-%02d-%.8s", var.vm_name, count.index,  uuid())}"
-
   tags {
     environment = "${var.env_tag}"
   }
@@ -60,10 +57,13 @@ resource "azurerm_virtual_machine" "vm" {
     vhd_uri       = "${var.sa_blob_endpoint}${var.container_name}/${var.vm_name}-osdisk-${count.index}.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
+
+    #image_uri     = "${var.packer_image_uri}"
+    #os_type       = "linux"
   }
 
   os_profile {
-    computer_name  = "${element(azurerm_public_ip.vm_pub_ip.*.fqdn, count.index)}"
+    computer_name  = "${var.vm_name}-${count.index}"
     admin_username = "${var.os_user_name}"
     admin_password = "${var.os_user_password}"
   }

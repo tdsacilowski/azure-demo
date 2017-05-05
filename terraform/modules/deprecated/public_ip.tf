@@ -8,10 +8,6 @@ resource "azurerm_public_ip" "demo_pub_ip" {
   #https://github.com/hashicorp/terraform/issues/6634#issuecomment-222843191
   domain_name_label = "${format("%s-%02d-%.8s", var.name, count.index,  uuid())}"
 
-  lifecycle {
-    ignore_changes = ["domain_name_label"]
-  }
-
   tags {
     environment = "${var.env_tag}"
   }

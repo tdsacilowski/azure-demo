@@ -9,9 +9,6 @@ resource "azurerm_public_ip" "vm_pub_ip" {
   resource_group_name          = "${var.resource_group_name}"
   public_ip_address_allocation = "static"
 
-  #https://github.com/hashicorp/terraform/issues/6634#issuecomment-222843191
-  domain_name_label = "${format("%s-%02d-%.8s", var.vm_name, count.index,  uuid())}"
-
   tags {
     environment = "${var.env_tag}"
   }
@@ -48,43 +45,50 @@ resource "azurerm_virtual_machine" "vm" {
   vm_size                       = "${var.vm_size}"
   delete_os_disk_on_termination = "true"
 
+  /*
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04.0-LTS"
     version   = "latest"
   }
+  */
 
   storage_os_disk {
     name          = "${var.vm_name}-osdisk-${count.index}"
     vhd_uri       = "${var.sa_blob_endpoint}${var.container_name}/${var.vm_name}-osdisk-${count.index}.vhd"
     caching       = "ReadWrite"
     create_option = "FromImage"
+    image_uri     = "${var.packer_image_uri}"
+    os_type       = "linux"
   }
-
   os_profile {
-    computer_name  = "${element(azurerm_public_ip.vm_pub_ip.*.fqdn, count.index)}"
+    computer_name  = "${var.vm_name}-${count.index}"
     admin_username = "${var.os_user_name}"
     admin_password = "${var.os_user_password}"
   }
-
   os_profile_linux_config {
-    disable_password_authentication = false
-  }
+    disable_password_authentication = true
 
+    ssh_keys {
+      path     = "/home/${var.os_user_name}/.ssh/authorized_keys"
+      key_data = "${file("${path.root}/../../scripts/ssh_keys/demo.pub")}"
+    }
+  }
   tags {
     environment = "${var.env_tag}"
   }
-
-  # Update /etc/hosts with hostname set in "os_profile.computer_name" above
+  # Update /etc/hosts with hostname set in "os_profile.computer_name" above and perform Azure CLI login
   provisioner "remote-exec" {
-    inline = ["echo \"127.0.1.1 `hostname`\" | sudo tee --append /etc/hosts > /dev/null"]
+    inline = [
+      "echo \"127.0.1.1 `hostname`\" | sudo tee --append /etc/hosts > /dev/null",
+      "az login -u ${var.client_id} -p ${var.client_secret} --service-principal --tenant ${var.tenant_id}",
+    ]
 
     connection {
-      host     = "${element(azurerm_public_ip.vm_pub_ip.*.ip_address, count.index)}"
-      type     = "ssh"
-      user     = "${var.os_user_name}"
-      password = "${var.os_user_password}"
+      host        = "${element(azurerm_public_ip.vm_pub_ip.*.ip_address, count.index)}"
+      user        = "${var.os_user_name}"
+      private_key = "${file("${path.root}/../../scripts/ssh_keys/demo.pem")}"
     }
   }
 }

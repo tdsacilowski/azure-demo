@@ -22,7 +22,7 @@ module "resource_group" {
 
 module "inventory_westus_storage" {
   source                = "../modules/storage"
-  storage_account_name  = "invwestussa"
+  storage_account_name  = "tdsacilowski2017westus"
   location              = "West US"
   account_type          = "Standard_LRS"
   container_access_type = "private"
@@ -32,7 +32,7 @@ module "inventory_westus_storage" {
 
 module "inventory_eastus_storage" {
   source                = "../modules/storage"
-  storage_account_name  = "inveastussa"
+  storage_account_name  = "tdsacilowski2017eastus"
   location              = "East US"
   account_type          = "Standard_LRS"
   container_access_type = "private"
@@ -42,7 +42,7 @@ module "inventory_eastus_storage" {
 
 module "checkout_westus2_storage" {
   source                = "../modules/storage"
-  storage_account_name  = "chkwestus2sa"
+  storage_account_name  = "tdsacilowski2017westus2"
   location              = "West US 2"
   account_type          = "Standard_LRS"
   container_access_type = "private"
@@ -96,13 +96,15 @@ module "bastion_westus" {
   resource_group_name = "${module.resource_group.name}"
   sa_blob_endpoint    = "${module.inventory_westus_storage.primary_blob_endpoint}"
   container_name      = "${module.inventory_westus_storage.container_name}"
-  vm_name             = "bastion-westus"
-  vm_location         = ["West US"]
-  vm_subnet_id        = ["${module.inventory_westus_network.subnet_id}"]
-  vm_size             = "Standard_A1_v2"
-  os_user_name        = "ubuntu"
-  os_user_password    = "${var.os_user_password}"
-  env_tag             = "bastion-host"
+
+  #packer_image_uri    = ""
+  vm_name          = "bastion-westus"
+  vm_location      = ["West US"]
+  vm_subnet_id     = ["${module.inventory_westus_network.subnet_id}"]
+  vm_size          = "Standard_A1_v2"
+  os_user_name     = "ubuntu"
+  os_user_password = "${var.os_user_password}"
+  env_tag          = "bastion-host"
 
   # Template and other implementation-specific parameters
   client_id                    = "${var.client_id}"

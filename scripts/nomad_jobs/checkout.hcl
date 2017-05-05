@@ -1,12 +1,12 @@
 job "checkout" {
   region      = "global"
-  datacenters = ["checkout-dc1", "inventory-east", "inventory-west"]
+  datacenters = ["consul-checkout-westus2"]
   type        = "service"
   priority    = 50
 
   constraint {
     attribute = "${node.datacenter}"
-    regexp    = "(checkout-dc1|inventory-east|inventory-west)"
+    regexp    = "(consul-checkout-westus2)"
   }
 
   update {
@@ -63,7 +63,7 @@ job "checkout" {
       service {
         name = "checkout"
         port = "checkout"
-        tags = ["nomad", "checkout-dc1", "inventory-east", "inventory-west"]
+        tags = ["nomad", "consul-checkout-westus2"]
       }
     }
   }

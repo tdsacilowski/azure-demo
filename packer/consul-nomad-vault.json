@@ -1,0 +1,93 @@
+{
+    "variables":{
+        "azure_client_id":"{{env `ARM_CLIENT_ID`}}",
+        "azure_client_secret":"{{env `ARM_CLIENT_SECRET`}}",
+        "azure_subscription_id":"{{env `ARM_SUBSCRIPTION_ID`}}"
+    },
+    "builders":[
+        {
+            "type":"azure-arm",
+            "name":"West US",
+            "client_id":"{{user `azure_client_id`}}",
+            "client_secret":"{{user `azure_client_secret`}}",
+            "subscription_id":"{{user `azure_subscription_id`}}",
+            "resource_group_name":"Azure-Demo",
+            "storage_account":"tdsacilowski2017westus",
+            "capture_container_name":"images",
+            "capture_name_prefix":"packer",
+            "os_type":"Linux",
+            "image_publisher":"Canonical",
+            "image_offer":"UbuntuServer",
+            "image_sku":"16.04.0-LTS",
+            "azure_tags":{
+                "dept":"packer"
+            },
+            "location":"West US",
+            "vm_size":"Standard_A2",
+            "ssh_username":"ubuntu"
+        },
+        {
+            "type":"azure-arm",
+            "name":"West US 2",
+            "client_id":"{{user `azure_client_id`}}",
+            "client_secret":"{{user `azure_client_secret`}}",
+            "subscription_id":"{{user `azure_subscription_id`}}",
+            "resource_group_name":"Azure-Demo",
+            "storage_account":"tdsacilowski2017westus2",
+            "capture_container_name":"images",
+            "capture_name_prefix":"packer",
+            "os_type":"Linux",
+            "image_publisher":"Canonical",
+            "image_offer":"UbuntuServer",
+            "image_sku":"16.04.0-LTS",
+            "azure_tags":{
+                "dept":"packer"
+            },
+            "location":"West US 2",
+            "vm_size":"Standard_A2",
+            "ssh_username":"ubuntu"
+        },
+        {
+            "type":"azure-arm",
+            "name":"East US",
+            "client_id":"{{user `azure_client_id`}}",
+            "client_secret":"{{user `azure_client_secret`}}",
+            "subscription_id":"{{user `azure_subscription_id`}}",
+            "resource_group_name":"Azure-Demo",
+            "storage_account":"tdsacilowski2017eastus",
+            "capture_container_name":"images",
+            "capture_name_prefix":"packer",
+            "os_type":"Linux",
+            "image_publisher":"Canonical",
+            "image_offer":"UbuntuServer",
+            "image_sku":"16.04.0-LTS",
+            "azure_tags":{
+                "dept":"packer"
+            },
+            "location":"East US",
+            "vm_size":"Standard_A2",
+            "ssh_username":"ubuntu"
+        }
+    ],
+    "provisioners":[
+        {
+            "type": "shell",
+            "scripts": [
+                "../scripts/disable_unattended_upgrades.sh",
+                "../scripts/install_azure_cli.sh",
+                "../scripts/install_docker.sh",
+                "../scripts/install_consul.sh",
+                "../scripts/install_vault.sh",
+                "../scripts/install_nomad.sh"
+            ]
+        },
+        {
+            "execute_command":"chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "inline":[
+                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+            ],
+            "inline_shebang":"/bin/sh -x",
+            "type":"shell"
+        }
+    ]
+}

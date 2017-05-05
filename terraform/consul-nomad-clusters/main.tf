@@ -32,6 +32,7 @@ module "inventory_westus_cluster" {
   resource_group_name = "${data.terraform_remote_state.base_infrastructure.resource_group_name}"
   sa_blob_endpoint    = "${data.terraform_remote_state.base_infrastructure.sa_blob_endpoint_inventory_westus}"
   container_name      = "vhd"
+  packer_image_uri    = "https://tdsacilowski2017westus.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.fead2404-c7cf-4dd2-b964-3b11581d96e8.vhd"
   vm_name             = "consul-inventory-westus"
   vm_location         = ["West US"]
   vm_subnet_id        = ["${data.terraform_remote_state.base_infrastructure.subnet_id_inventory_westus}"]
@@ -60,6 +61,7 @@ module "inventory_eastus_cluster" {
   resource_group_name = "${data.terraform_remote_state.base_infrastructure.resource_group_name}"
   sa_blob_endpoint    = "${data.terraform_remote_state.base_infrastructure.sa_blob_endpoint_inventory_eastus}"
   container_name      = "vhd"
+  packer_image_uri    = "https://tdsacilowski2017eastus.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.2eb8c4db-27d8-4671-8888-d256831ec7d5.vhd"
   vm_name             = "consul-inventory-eastus"
   vm_location         = ["East US"]
   vm_subnet_id        = ["${data.terraform_remote_state.base_infrastructure.subnet_id_inventory_eastus}"]
@@ -88,10 +90,11 @@ module "checkout_westus2_cluster" {
   resource_group_name = "${data.terraform_remote_state.base_infrastructure.resource_group_name}"
   sa_blob_endpoint    = "${data.terraform_remote_state.base_infrastructure.sa_blob_endpoint_checkout_westus2}"
   container_name      = "vhd"
+  packer_image_uri    = "https://tdsacilowski2017westus2.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.a64f3fa4-293d-4a23-87eb-7bd628fd8165.vhd"
   vm_name             = "consul-checkout-westus2"
   vm_location         = ["West US 2"]
   vm_subnet_id        = ["${data.terraform_remote_state.base_infrastructure.subnet_id_checkout_westus2}"]
-  vm_size             = "Standard_D2_v2"
+  vm_size             = "Standard_D3_v2"
   os_user_name        = "ubuntu"
   os_user_password    = "${var.os_user_password}"
   env_tag             = "consul-checkout-westus2"

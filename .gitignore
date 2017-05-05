@@ -1,7 +1,12 @@
 ## General operating system artefacts
 .DS_Store
+.vscode/
  
 ## Terraform artifacts
 .terraform/
 *.tfstate*
 terraform.tfvars
+
+## SSH Keys
+*.pem
+*.pub

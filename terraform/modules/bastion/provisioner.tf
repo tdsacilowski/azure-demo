@@ -14,7 +14,7 @@ resource "null_resource" "install_azure_cli" {
 
   provisioner "remote-exec" {
     inline = [
-      "${file("${path.root}/../scripts/install_azure_cli.sh")}",
+      "${file("${path.root}/../../scripts/install_azure_cli.sh")}",
       "az login -u ${var.client_id} -p ${var.client_secret} --service-principal --tenant ${var.tenant_id}",
     ]
 
